@@ -50,18 +50,26 @@ function! s:object2lines(obj_id,obj)
     redir END
     let lines += split(hoge,"\n")
   elseif type({}) == a:obj.type
-    let lines +=  [ '{' ]
-    for key in keys(a:obj.value)
-      let lines += [ '  ' . printf('%s: %s', key, string(a:obj.value[key])) . ',' ]
-    endfor
-    let lines += [ '}' ]
+    if exists('*PrettyPrint')
+      let lines += split(PrettyPrint(a:obj.value),"\n")
+    else
+      let lines +=  [ '{' ]
+      for key in keys(a:obj.value)
+        let lines += [ '  ' . printf("'%s' : %s", key, string(a:obj.value[key])) . ',' ]
+      endfor
+      let lines += [ '}' ]
+    endif
   elseif type([]) == a:obj.type
-    let lines +=  [ '[' ]
-    for e in a:obj.value
-      let lines += [ '  ' . string(e) . ',' ]
-      unlet e
-    endfor
-    let lines += [ ']' ]
+    if exists('*PrettyPrint')
+      let lines += split(PrettyPrint(a:obj.value),"\n")
+    else
+      let lines +=  [ '[' ]
+      for e in a:obj.value
+        let lines += [ '  ' . string(e) . ',' ]
+        unlet e
+      endfor
+      let lines += [ ']' ]
+    endif
   elseif type("") == a:obj.type
     let lines += split(a:obj.value,"\n")
   elseif s:TYPE_ERROR == a:obj.type
@@ -75,7 +83,7 @@ endfunction
 function! s:get_log()
   let rtn = [ 'dummy' ]
   for obj_id in range(0,len(s:objects)-1)
-    let rtn += s:object2lines( obj_id, s:objects[obj_id])
+    let rtn += s:object2lines( obj_id % 1000, s:objects[obj_id])
   endfor
   let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - 1 )
   return join(rtn,"\n")
