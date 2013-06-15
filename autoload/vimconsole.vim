@@ -73,10 +73,11 @@ function! s:object2lines(obj_id,obj)
 endfunction
 
 function! s:get_log()
-  let rtn = [ printf('-- Vim Console (%d) --', len(s:objects)) ]
+  let rtn = [ 'dummy' ]
   for obj_id in range(0,len(s:objects)-1)
     let rtn += s:object2lines( obj_id, s:objects[obj_id])
   endfor
+  let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - 1 )
   return join(rtn,"\n")
 endfunction
 
@@ -96,15 +97,26 @@ function! vimconsole#redraw()
   execute curr_winnr . "wincmd w"
 endfunction
 
+function! vimconsole#foldtext()
+  if v:foldstart < v:foldend
+    return repeat(' ',6) . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[6:]
+  else
+    return repeat(' ',6) . getline(v:foldstart)[6:]
+  endif
+endfunction
+
 function! vimconsole#winopen()
   call vimconsole#winclose()
   let tmp = &splitbelow
   try
     setlocal splitbelow
+    execute "wincmd b"
     new
+    execute 'resize ' . g:vimconsole#height
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
     setlocal filetype=vimconsole
     setlocal foldmethod=expr
+    setlocal foldtext=vimconsole#foldtext()
     setlocal foldexpr=(getline(v:lnum-1)[:2]==#getline(v:lnum)[:2])?'=':'>1'
     call vimconsole#redraw()
     normal zm
