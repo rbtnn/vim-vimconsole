@@ -73,7 +73,7 @@ function! s:object2lines(obj_id,obj)
 endfunction
 
 function! s:get_log()
-  let rtn = []
+  let rtn = [ printf('-- Vim Console (%d) --', len(s:objects)) ]
   for obj_id in range(0,len(s:objects)-1)
     let rtn += s:object2lines( obj_id, s:objects[obj_id])
   endfor

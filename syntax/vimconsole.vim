@@ -3,6 +3,7 @@ if exists ("b:current_syntax")
   finish
 endif
 
+syn match   vimconsoleTitle    '^--.*$'
 syn match   vimconsoleID    '^...|.|' containedin=ALL
 syn match   vimconsoleNumber      /^...|0|.*$/
 syn match   vimconsoleString      /^...|1|.*$/
@@ -12,6 +13,7 @@ syn match   vimconsoleDictionary  /^...|4|.*$/
 syn match   vimconsoleFloat       /^...|5|.*$/
 syn match   vimconsoleError       /^...|6|.*$/
 
+hi def link vimconsoleTitle      Title
 hi def link vimconsoleID         Ignore
 hi def link vimconsoleNumber     Normal
 hi def link vimconsoleString     Normal

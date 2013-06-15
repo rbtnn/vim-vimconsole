@@ -4,6 +4,8 @@
 This is immediate-window for Vim script.  
 It is like Google Chrome Developer Console.  
 
+![](https://github.com/rbtnn/vimconsole.vim/raw/dev/vimconsole.png)
+
 ## How to use
 
 * vimconsole#log(obj)
