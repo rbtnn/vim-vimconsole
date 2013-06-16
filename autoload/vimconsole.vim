@@ -73,8 +73,7 @@ function! s:object2lines(obj)
     try
       execute 'function ' . matchstr(string(a:obj.value),"function('\\zs.*\\ze')")
     catch /.*/
-      let a:obj.value = string(a:obj.value)
-      echo a:obj.value
+      echo string(a:obj.value)
     endtry
     redir END
     let lines += split(hoge,"\n")
