@@ -36,7 +36,7 @@ It is like Google Chrome Developer Console.
 This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
 
 ==============================================================================
-VARIABLES 					 *vimconsole-commands*
+VARIABLES 					 *vimconsole-variables*
 
 * g:vimconsole#height
 
@@ -48,17 +48,17 @@ COMMANDS 					 *vimconsole-commands*
 * :VimConsoleLog {obj}                           *vimconsole-VimConsoleLog*
 
 Print to VimConsole.
-Same as `vimconsole#log(obj,...)`.
+Same as `vimconsole#log({obj},...)`.
 
 * :VimConsoleWarn {obj}                          *vimconsole-VimConsoleWarn*
 
 Print to VimConsole.
-Same as `vimconsole#warn(obj,...)`.
+Same as `vimconsole#warn({obj},...)`.
 
 * :VimConsoleError {obj}                         *vimconsole-VimConsoleError*
 
 Print to VimConsole.
-Same as `vimconsole#error(obj,...)`.
+Same as `vimconsole#error({obj},...)`.
 
 * :VimConsoleOpen                                *vimconsole-VimConsoleOpen*
 
