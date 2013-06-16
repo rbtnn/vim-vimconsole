@@ -56,6 +56,22 @@ function! vimconsole#error(obj,...)
   endif
 endfunction
 
+function! vimconsole#wintoggle()
+  let close_flag = 0
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if getbufvar(bufnr,'&filetype') ==# 'vimconsole'
+      execute winnr . "wincmd w"
+      close
+      let close_flag = 1
+    endif
+  endfor
+
+  if ! close_flag
+    call vimconsole#winopen()
+  endif
+endfunction
+
 function! vimconsole#winclose()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
@@ -140,6 +156,7 @@ function! vimconsole#foldtext()
 endfunction
 
 function! vimconsole#winopen()
+  let curr_winnr = winnr()
   call vimconsole#winclose()
   let tmp = &splitbelow
   try
@@ -157,5 +174,6 @@ function! vimconsole#winopen()
   finally
     let &splitbelow = tmp
   endtry
+  execute curr_winnr . "wincmd w"
 endfunction
 

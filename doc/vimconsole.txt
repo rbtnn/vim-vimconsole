@@ -68,6 +68,10 @@ Open VimConsole.
 
 Close VimConsole.
 
+* :VimConsoleToggle                              *vimconsole-VimConsoleToggle*
+
+Toggle VimConsole. 
+
 * :VimConsoleClear                               *vimconsole-VimConsoleClear*
 
 Clear logs of VimConsole.
@@ -106,6 +110,10 @@ Same as |VimConsoleOpen|.
 * vimconsole#winclose()                       *vimconsole-vimconsole#winclose()*
 
 Same as |VimConsoleClose|.
+
+* vimconsole#wintoggle()                      *vimconsole-vimconsole#wintoggle()*
+
+Same as |VimConsoleToggle|.
 
 * vimconsole#clear()                          *vimconsole-vimconsole#clear()*
 
