@@ -12,12 +12,24 @@ function! vimconsole#test()
   call vimconsole#log(function('vimconsole#test'))
   call vimconsole#log(function('tr'))
   call vimconsole#warn("this is warn message.")
+  call vimconsole#assert(1,"(true) this is assert message.")
+  call vimconsole#assert(0,"(false) this is assert message.")
   call vimconsole#warn("this is %s message.", 'warn')
   call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
 endfunction
 
 function! vimconsole#clear()
   let s:objects = []
+endfunction
+
+function! vimconsole#assert(expr,obj,...)
+  if a:expr
+    if 0 < a:0
+      let s:objects = [ { 'type' : type("") , 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
+    else
+      let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
+    endif
+  endif
 endfunction
 
 function! vimconsole#log(obj,...)

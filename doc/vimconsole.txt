@@ -45,17 +45,20 @@ VimConsole's window height. default: 6
 ==============================================================================
 COMMANDS 					 *vimconsole-commands*
 
-* :VimConsoleLog {expr}                          *vimconsole-VimConsoleLog*
+* :VimConsoleLog {obj}                           *vimconsole-VimConsoleLog*
 
-It is like javascript's `console.log({expr})`.
+Print to VimConsole.
+Same as `vimconsole#log(obj,...)`.
 
-* :VimConsoleWarn {expr}                        *vimconsole-VimConsoleError*
+* :VimConsoleWarn {obj}                          *vimconsole-VimConsoleWarn*
 
-It is like javascript's `console.warn({expr})`.
+Print to VimConsole.
+Same as `vimconsole#warn(obj,...)`.
 
-* :VimConsoleError {expr}                        *vimconsole-VimConsoleError*
+* :VimConsoleError {obj}                         *vimconsole-VimConsoleError*
 
-It is like javascript's `console.error({expr})`.
+Print to VimConsole.
+Same as `vimconsole#error(obj,...)`.
 
 * :VimConsoleOpen                                *vimconsole-VimConsoleOpen*
 
@@ -76,20 +79,25 @@ Redraw VimConsole.
 ==============================================================================
 FUNCTIONS 			              *vimconsole-functions*
 
-* vimconsole#log(expr,...)                    *vimconsole-vimconsole#log()*
+* vimconsole#assert(expr,obj,...)             *vimconsole-vimconsole#assert()*
 
-Same as |VimConsoleLog|.
-This behavior is printf({expr}, ...) to VimConsole if `0 < a:0`.
+It is like javascript's `console.assert({expr},{obj},...)`.
+This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
-* vimconsole#warn(expr,...)                   *vimconsole-vimconsole#warning()*
+* vimconsole#log(obj,...)                    *vimconsole-vimconsole#log()*
 
-Same as |VimConsoleWarn|.
-This behavior is printf({expr}, ...) to VimConsole if `0 < a:0`.
+It is like javascript's `console.log({obj},...)`.
+This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
-* vimconsole#error(expr,...)                  *vimconsole-vimconsole#error()*
+* vimconsole#warn(obj,...)                   *vimconsole-vimconsole#warning()*
 
-Same as |VimConsoleError|.
-This behavior is printf({expr}, ...) to VimConsole if `0 < a:0`.
+It is like javascript's `console.warn({obj},...)`.
+This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
+
+* vimconsole#error(obj,...)                  *vimconsole-vimconsole#error()*
+
+It is like javascript's `console.error({obj},...)`.
+This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
 * vimconsole#winopen()                        *vimconsole-vimconsole#winopen()*
 
