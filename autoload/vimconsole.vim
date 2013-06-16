@@ -1,5 +1,6 @@
 
 let s:TYPE_ERROR = 6
+let s:TYPE_WARN = 7
 let s:objects = get(s:,'objects',[])
 
 function! vimconsole#test()
@@ -10,6 +11,8 @@ function! vimconsole#test()
   call vimconsole#log([ 1,2,3,4,5 ])
   call vimconsole#log(function('vimconsole#test'))
   call vimconsole#log(function('tr'))
+  call vimconsole#warn("this is warn message.")
+  call vimconsole#warn("this is %s message.", 'warn')
   call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
 endfunction
 
@@ -17,12 +20,28 @@ function! vimconsole#clear()
   let s:objects = []
 endfunction
 
-function! vimconsole#log(obj)
-  let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
+function! vimconsole#log(obj,...)
+  if 0 < a:0
+    let s:objects = [ { 'type' : type("") , 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
+  else
+    let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
+  endif
 endfunction
 
-function! vimconsole#error(obj)
-  let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : deepcopy(a:obj) } ] + s:objects
+function! vimconsole#warn(obj,...)
+  if 0 < a:0
+    let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
+  else
+    let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : deepcopy(a:obj) } ] + s:objects
+  endif
+endfunction
+
+function! vimconsole#error(obj,...)
+  if 0 < a:0
+    let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
+  else
+    let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : deepcopy(a:obj) } ] + s:objects
+  endif
 endfunction
 
 function! vimconsole#winclose()
@@ -35,16 +54,14 @@ function! vimconsole#winclose()
   endfor
 endfunction
 
-function! s:object2lines(obj_id,obj)
-  let format =  '%3d|%s|%s'
+function! s:object2lines(obj)
   let lines = []
   if type(function('tr')) == a:obj.type
     redir => hoge
     try
       execute 'function ' . matchstr(string(a:obj.value),"function('\\zs.*\\ze')")
     catch /.*/
-      let a:obj.type = s:TYPE_ERROR
-      let a:obj.value = v:exception . "\n" . v:throwpoint
+      let a:obj.value = string(a:obj.value)
       echo a:obj.value
     endtry
     redir END
@@ -74,16 +91,18 @@ function! s:object2lines(obj_id,obj)
     let lines += split(a:obj.value,"\n")
   elseif s:TYPE_ERROR == a:obj.type
     let lines += split(a:obj.value,"\n")
+  elseif s:TYPE_WARN == a:obj.type
+    let lines += split(a:obj.value,"\n")
   else
     let lines += [ string(a:obj.value) ]
   endif
-  return map(lines,'printf(format, a:obj_id, a:obj.type, v:val)')
+  return [printf('%2s-%s', a:obj.type, lines[0])] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
 endfunction
 
 function! s:get_log()
   let rtn = [ 'dummy' ]
-  for obj_id in range(0,len(s:objects)-1)
-    let rtn += s:object2lines( obj_id % 1000, s:objects[obj_id])
+  for obj in s:objects
+    let rtn += s:object2lines(obj)
   endfor
   let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - 1 )
   return join(rtn,"\n")
@@ -106,11 +125,7 @@ function! vimconsole#redraw()
 endfunction
 
 function! vimconsole#foldtext()
-  if v:foldstart < v:foldend
-    return repeat(' ',6) . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[6:]
-  else
-    return repeat(' ',6) . getline(v:foldstart)[6:]
-  endif
+  return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
 endfunction
 
 function! vimconsole#winopen()
@@ -125,7 +140,7 @@ function! vimconsole#winopen()
     setlocal filetype=vimconsole
     setlocal foldmethod=expr
     setlocal foldtext=vimconsole#foldtext()
-    setlocal foldexpr=(getline(v:lnum-1)[:2]==#getline(v:lnum)[:2])?'=':'>1'
+    setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
     call vimconsole#redraw()
     normal zm
   finally

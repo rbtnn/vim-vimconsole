@@ -49,6 +49,10 @@ COMMANDS 					 *vimconsole-commands*
 
 It is like javascript's `console.log({expr})`.
 
+* :VimConsoleWarn {expr}                        *vimconsole-VimConsoleError*
+
+It is like javascript's `console.warn({expr})`.
+
 * :VimConsoleError {expr}                        *vimconsole-VimConsoleError*
 
 It is like javascript's `console.error({expr})`.
@@ -70,15 +74,22 @@ Clear logs of VimConsole.
 Redraw VimConsole.
 
 ==============================================================================
-FUNCTIONS 				      *vimconsole-functions*
+FUNCTIONS 			              *vimconsole-functions*
 
-* vimconsole#log(expr)                        *vimconsole-vimconsole#log()*
+* vimconsole#log(expr,...)                    *vimconsole-vimconsole#log()*
 
 Same as |VimConsoleLog|.
+This behavior is printf({expr}, ...) to VimConsole if `0 < a:0`.
 
-* vimconsole#error(expr)                       *vimconsole-vimconsole#error()*
+* vimconsole#warn(expr,...)                   *vimconsole-vimconsole#warning()*
+
+Same as |VimConsoleWarn|.
+This behavior is printf({expr}, ...) to VimConsole if `0 < a:0`.
+
+* vimconsole#error(expr,...)                  *vimconsole-vimconsole#error()*
 
 Same as |VimConsoleError|.
+This behavior is printf({expr}, ...) to VimConsole if `0 < a:0`.
 
 * vimconsole#winopen()                        *vimconsole-vimconsole#winopen()*
 
