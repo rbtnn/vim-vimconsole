@@ -126,10 +126,30 @@ function! s:object2lines(obj)
   return [printf('%2s-%s', a:obj.type, lines[0])] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
 endfunction
 
+function! vimconsole#at(...)
+  let line_num = 0 < a:0 ? a:1 : line(".")
+  if type(line_num) == type(0)
+    for obj in s:objects
+      if obj.begin <= line_num && line_num <= obj.end
+        return deepcopy(obj.value)
+      endif
+    endfor
+  endif
+  return {}
+endfunction
+
 function! s:get_log()
   let rtn = [ 'dummy' ]
+  let begin = 1
   for obj in s:objects
-    let rtn += s:object2lines(obj)
+    let lines = s:object2lines(obj)
+
+    let obj.begin = begin + 1
+    let obj.end = begin + len(lines)
+
+    let rtn += lines
+
+    let begin = obj.end
   endfor
   let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - 1 )
   return join(rtn,"\n")
