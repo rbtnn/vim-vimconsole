@@ -30,6 +30,9 @@ function! vimconsole#assert(expr,obj,...)
       let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
     endif
   endif
+  if g:vimconsole#auto_redraw
+    call vimconsole#redraw()
+  endif
 endfunction
 
 function! vimconsole#log(obj,...)
@@ -37,6 +40,9 @@ function! vimconsole#log(obj,...)
     let s:objects = [ { 'type' : type("") , 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
   else
     let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
+  endif
+  if g:vimconsole#auto_redraw
+    call vimconsole#redraw()
   endif
 endfunction
 
@@ -46,6 +52,9 @@ function! vimconsole#warn(obj,...)
   else
     let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : deepcopy(a:obj) } ] + s:objects
   endif
+  if g:vimconsole#auto_redraw
+    call vimconsole#redraw()
+  endif
 endfunction
 
 function! vimconsole#error(obj,...)
@@ -53,6 +62,9 @@ function! vimconsole#error(obj,...)
     let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
   else
     let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : deepcopy(a:obj) } ] + s:objects
+  endif
+  if g:vimconsole#auto_redraw
+    call vimconsole#redraw()
   endif
 endfunction
 
