@@ -10,7 +10,7 @@ let g:loaded_vimconsole = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-let g:vimconsole#height = 6
+let g:vimconsole#height = get(g:,'vimconsole#height',6)
 
 command! -nargs=0 VimConsoleOpen   :call vimconsole#winopen()
 command! -nargs=0 VimConsoleClose  :call vimconsole#winclose()
