@@ -191,7 +191,7 @@ function! vimconsole#foldtext()
   return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
 endfunction
 
-function! s:define_hiright_syntax()
+function! s:define_highlight_syntax()
   syn match   vimconsoleTitle    '^--.*$'
   syn match   vimconsoleID    '^..\(-\||\)' containedin=ALL
   syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
