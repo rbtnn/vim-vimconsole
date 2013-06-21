@@ -12,7 +12,7 @@ set cpo&vim
 
 let g:vimconsole#height = get(g:,'vimconsole#height',6)
 let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
-let g:vimconsole#very_simple_mode = get(g:,'vimconsole#very_simple_mode', 0)
+let g:vimconsole#plain_mode = get(g:,'vimconsole#plain_mode', 0)
 
 command! -nargs=0 VimConsoleOpen   :call vimconsole#winopen()
 command! -nargs=0 VimConsoleClose  :call vimconsole#winclose()

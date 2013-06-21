@@ -135,7 +135,7 @@ function! s:object2lines(obj)
   else
     let lines += [ string(a:obj.value) ]
   endif
-  if g:vimconsole#very_simple_mode
+  if g:vimconsole#plain_mode
     return lines
   else
     return [printf('%2s-%s', a:obj.type, lines[0])] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
@@ -212,7 +212,7 @@ function! s:define_highlight_syntax()
   hi def link vimconsoleFloat      Normal
   hi def link vimconsoleFloat      Normal
 
-  if g:vimconsole#very_simple_mode
+  if g:vimconsole#plain_mode
     hi def link vimconsoleID         Normal
     hi def link vimconsoleError      Normal
     hi def link vimconsoleWarning    Normal
@@ -234,9 +234,13 @@ function! vimconsole#winopen()
     execute 'resize ' . g:vimconsole#height
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
     setlocal filetype=vimconsole
-    setlocal foldmethod=expr
-    setlocal foldtext=vimconsole#foldtext()
-    setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
+    if g:vimconsole#plain_mode
+      setlocal foldmethod=manual
+    else
+      setlocal foldmethod=expr
+      setlocal foldtext=vimconsole#foldtext()
+      setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
+    endif
     call s:define_highlight_syntax()
     call vimconsole#redraw()
     normal zm
