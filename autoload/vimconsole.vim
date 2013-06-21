@@ -237,7 +237,7 @@ function! vimconsole#winopen()
     setlocal foldmethod=expr
     setlocal foldtext=vimconsole#foldtext()
     setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
-    call s:define_hiright_syntax()
+    call s:define_highlight_syntax()
     call vimconsole#redraw()
     normal zm
   finally
