@@ -36,15 +36,20 @@ It is like Google Chrome Developer Console.
 This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
 
 ==============================================================================
-VARIABLES 				    *vimconsole-variables*
+VARIABLES 			       *vimconsole-variables*
 
-* g:vimconsole#height                       *vimconsole-vimconsole#height* 
+* g:vimconsole#height                  *vimconsole-vimconsole#height* 
 
 VimConsole's window height. default: 6
 
-* g:vimconsole#auto_redraw                  *vimconsole-vimconsole#auto_redraw* 
+* g:vimconsole#auto_redraw             *vimconsole-vimconsole#auto_redraw* 
 
 When print to VimConsole, call |vimconsole#redraw()|. default: 0
+
+* g:vimconsole#very_simple_mode        *vimconsole-vimconsole#very_simple_mode* 
+
+Disable highlight, fold and prefix-string('1-','1|'.. ,etc)
+in VimConsole. default: 0
 
 ==============================================================================
 COMMANDS 					 *vimconsole-commands*

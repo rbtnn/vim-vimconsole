@@ -135,7 +135,11 @@ function! s:object2lines(obj)
   else
     let lines += [ string(a:obj.value) ]
   endif
-  return [printf('%2s-%s', a:obj.type, lines[0])] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
+  if g:vimconsole#very_simple_mode
+    return lines
+  else
+    return [printf('%2s-%s', a:obj.type, lines[0])] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
+  endif
 endfunction
 
 function! vimconsole#at(...)
@@ -187,6 +191,38 @@ function! vimconsole#foldtext()
   return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
 endfunction
 
+function! s:define_hiright_syntax()
+  syn match   vimconsoleTitle    '^--.*$'
+  syn match   vimconsoleID    '^..\(-\||\)' containedin=ALL
+  syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
+  syn match   vimconsoleString      /^ 1\(-\||\).*$/
+  syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
+  syn match   vimconsoleList        /^ 3\(-\||\).*$/
+  syn match   vimconsoleDictionary  /^ 4\(-\||\).*$/
+  syn match   vimconsoleFloat       /^ 5\(-\||\).*$/
+  syn match   vimconsoleError       /^ 6\(-\||\).*$/
+  syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
+
+  hi def link vimconsoleTitle      Title
+  hi def link vimconsoleNumber     Normal
+  hi def link vimconsoleString     Normal
+  hi def link vimconsoleFuncref    Normal
+  hi def link vimconsoleList       Normal
+  hi def link vimconsoleDictionary Normal
+  hi def link vimconsoleFloat      Normal
+  hi def link vimconsoleFloat      Normal
+
+  if g:vimconsole#very_simple_mode
+    hi def link vimconsoleID         Normal
+    hi def link vimconsoleError      Normal
+    hi def link vimconsoleWarning    Normal
+  else
+    hi def link vimconsoleID         Ignore
+    hi def link vimconsoleError      Error
+    hi def link vimconsoleWarning    WarningMsg
+  endif
+endfunction
+
 function! vimconsole#winopen()
   let curr_winnr = winnr()
   call vimconsole#winclose()
@@ -201,6 +237,7 @@ function! vimconsole#winopen()
     setlocal foldmethod=expr
     setlocal foldtext=vimconsole#foldtext()
     setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
+    call s:define_hiright_syntax()
     call vimconsole#redraw()
     normal zm
   finally
