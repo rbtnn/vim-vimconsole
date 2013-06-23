@@ -10,6 +10,7 @@ let g:loaded_vimconsole = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
+let g:vimconsole#hooks = get(g:,'vimconsole#hooks',{})
 let g:vimconsole#height = get(g:,'vimconsole#height',6)
 let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
 let g:vimconsole#plain_mode = get(g:,'vimconsole#plain_mode', 0)

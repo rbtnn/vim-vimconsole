@@ -18,6 +18,15 @@ function! vimconsole#test()
   call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
 endfunction
 
+function s:logged_events(context)
+  if has_key(g:vimconsole#hooks,'on_logged')
+    call g:vimconsole#hooks.on_logged(a:context)
+  endif
+  if g:vimconsole#auto_redraw
+    call vimconsole#redraw()
+  endif
+endfunction
+
 function! vimconsole#clear()
   let s:objects = []
 endfunction
@@ -30,9 +39,7 @@ function! vimconsole#assert(expr,obj,...)
       let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
     endif
   endif
-  if g:vimconsole#auto_redraw
-    call vimconsole#redraw()
-  endif
+  call s:logged_events({ 'tag' : 'vimconsole#assert' })
 endfunction
 
 function! vimconsole#log(obj,...)
@@ -41,9 +48,7 @@ function! vimconsole#log(obj,...)
   else
     let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
   endif
-  if g:vimconsole#auto_redraw
-    call vimconsole#redraw()
-  endif
+  call s:logged_events({ 'tag' : 'vimconsole#log' })
 endfunction
 
 function! vimconsole#warn(obj,...)
@@ -52,9 +57,7 @@ function! vimconsole#warn(obj,...)
   else
     let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : deepcopy(a:obj) } ] + s:objects
   endif
-  if g:vimconsole#auto_redraw
-    call vimconsole#redraw()
-  endif
+  call s:logged_events({ 'tag' : 'vimconsole#warn' })
 endfunction
 
 function! vimconsole#error(obj,...)
@@ -63,9 +66,7 @@ function! vimconsole#error(obj,...)
   else
     let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : deepcopy(a:obj) } ] + s:objects
   endif
-  if g:vimconsole#auto_redraw
-    call vimconsole#redraw()
-  endif
+  call s:logged_events({ 'tag' : 'vimconsole#error' })
 endfunction
 
 function! vimconsole#wintoggle()

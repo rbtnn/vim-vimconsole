@@ -51,6 +51,22 @@ When print to VimConsole, call |vimconsole#redraw()|. default: 0
 Disable highlight, fold and prefix-string('1-','1|'.. ,etc)
 in VimConsole. default: 0
 
+* g:vimconsole#hooks                      *vimconsole-vimconsole#looks* 
+
+This value is `{}`. This can have following keys.
+
+    on_logged: This is a function reference.
+               If g:vimconsole#hooks has this key, call this after logging by
+               a logging function (vimconsole#log, vimconsole#warn,... ,etc.).
+
+               Example:
+>
+               function! MyOnLoggedF(context)
+                 " `a:context`'s value is such as `{ 'tag' : 'vimconsole#assert' }`.
+                 echo a:context.tag
+               endfunction
+               let g:vimconsole#hooks.on_logged = function('MyOnLoggedF')
+<
 ==============================================================================
 COMMANDS 					 *vimconsole-commands*
 
@@ -135,7 +151,7 @@ Same as |VimConsoleRedraw|.
 * vimconsole#at(...)                          *vimconsole-vimconsole#at()*
 
 Return the object of the specified line.
-The object is deepcopy object. So you not can rewrite the object.
+The object is deepcopy object. So you can not rewrite the object.
 First argument of {...} is a line number at VimConsole. default:`line(".")`
 Return `{}` if the argument is invalid.
 
