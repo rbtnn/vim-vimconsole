@@ -1,6 +1,7 @@
 
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
+let s:PROMPT_LINE_NUM = 2
 let s:objects = get(s:,'objects',[])
 
 function! vimconsole#test()
@@ -18,7 +19,7 @@ function! vimconsole#test()
   call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
 endfunction
 
-function s:logged_events(context)
+function! s:logged_events(context)
   if has_key(g:vimconsole#hooks,'on_logged')
     call g:vimconsole#hooks.on_logged(a:context)
   endif
@@ -147,7 +148,7 @@ function! vimconsole#at(...)
   let line_num = 0 < a:0 ? a:1 : line(".")
   if type(line_num) == type(0)
     for obj in s:objects
-      if obj.begin <= line_num && line_num <= obj.end
+      if obj.start <= line_num && line_num <= obj.last
         return deepcopy(obj.value)
       endif
     endfor
@@ -156,19 +157,20 @@ function! vimconsole#at(...)
 endfunction
 
 function! s:get_log()
-  let rtn = [ 'dummy' ]
-  let begin = 1
+  let rtn = [ 'dummy', 'dummy' ]
+  let start = len(rtn)
   for obj in s:objects
     let lines = s:object2lines(obj)
 
-    let obj.begin = begin + 1
-    let obj.end = begin + len(lines)
+    let obj.start = start + 1
+    let obj.last = start + len(lines)
 
     let rtn += lines
 
-    let begin = obj.end
+    let start = obj.last
   endfor
   let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - 1 )
+  let rtn[1] = '>'
   return join(rtn,"\n")
 endfunction
 
@@ -178,11 +180,11 @@ function! vimconsole#redraw()
     let bufnr = winbufnr(winnr)
     if getbufvar(bufnr,'&filetype') ==# 'vimconsole'
       execute winnr . "wincmd w"
-      setlocal noreadonly
+      " setlocal noreadonly
       silent % delete _
       silent put=s:get_log()
       silent 1 delete _
-      setlocal readonly
+      " setlocal readonly
     endif
   endfor
   execute curr_winnr . "wincmd w"
@@ -192,8 +194,29 @@ function! vimconsole#foldtext()
   return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
 endfunction
 
+function! vimconsole#bufenter()
+  call cursor(s:PROMPT_LINE_NUM,0)
+  call feedkeys('A')
+endfunction
+
+function! s:i_key_cr()
+  if line('.') == s:PROMPT_LINE_NUM
+    let m = matchlist(getline('.'), '^>\(.*\)$')
+    if ! empty(m)
+      call vimconsole#log(eval(m[1]))
+      call vimconsole#redraw()
+      call vimconsole#bufenter()
+    endif
+  endif
+endfunction
+
+function! s:define_key_mappings()
+  inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
+endfunction
+
 function! s:define_highlight_syntax()
-  syn match   vimconsoleTitle    '^--.*$'
+  syn match   vimconsoleTitle     '^\%1l.*$'
+  syn match   vimconsolePrompt    '^\%2l.*$'
   syn match   vimconsoleID    '^..\(-\||\)' containedin=ALL
   syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
   syn match   vimconsoleString      /^ 1\(-\||\).*$/
@@ -205,6 +228,7 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
 
   hi def link vimconsoleTitle      Title
+  hi def link vimconsolePrompt     Statement
   hi def link vimconsoleNumber     Normal
   hi def link vimconsoleString     Normal
   hi def link vimconsoleFuncref    Normal
@@ -242,6 +266,7 @@ function! vimconsole#winopen()
       setlocal foldtext=vimconsole#foldtext()
       setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
     endif
+    call s:define_key_mappings()
     call s:define_highlight_syntax()
     call vimconsole#redraw()
     normal zm
