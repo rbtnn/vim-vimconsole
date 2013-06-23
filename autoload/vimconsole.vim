@@ -2,8 +2,10 @@
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:PROMPT_LINE_NUM = 2
-let s:PROMPT_STRING = '>'
+let s:PROMPT_STRING = 'echo> '
+let s:FILETYPE = 'vim'
 let s:objects = get(s:,'objects',[])
+
 
 function! vimconsole#test()
   call vimconsole#clear()
@@ -18,6 +20,10 @@ function! vimconsole#test()
   call vimconsole#assert(0,"(false) this is assert message.")
   call vimconsole#warn("this is %s message.", 'warn')
   call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
+endfunction
+
+function! s:is_vimconsole_window(bufnr)
+  return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
 endfunction
 
 function! s:logged_events(context)
@@ -75,7 +81,7 @@ function! vimconsole#wintoggle()
   let close_flag = 0
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
-    if getbufvar(bufnr,'&filetype') ==# 'vimconsole'
+    if s:is_vimconsole_window(bufnr)
       execute winnr . "wincmd w"
       close
       let close_flag = 1
@@ -90,7 +96,7 @@ endfunction
 function! vimconsole#winclose()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
-    if getbufvar(bufnr,'&filetype') ==# 'vimconsole'
+    if s:is_vimconsole_window(bufnr)
       execute winnr . "wincmd w"
       close
     endif
@@ -180,7 +186,7 @@ function! vimconsole#redraw()
   let curr_winnr = winnr()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
-    if getbufvar(bufnr,'&filetype') ==# 'vimconsole'
+    if s:is_vimconsole_window(bufnr)
       execute winnr . "wincmd w"
       silent % delete _
       silent put=s:get_log()
@@ -269,9 +275,10 @@ function! vimconsole#winopen()
     setlocal splitbelow
     execute "wincmd b"
     new
+    let b:vimconsole = 1
     execute 'resize ' . g:vimconsole#height
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
-    setlocal filetype=vimconsole
+    execute 'setlocal filetype=' . s:FILETYPE
     augroup vimconsole
       autocmd!
       autocmd InsertEnter <buffer> call vimconsole#bufenter()
