@@ -2,7 +2,7 @@
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:PROMPT_LINE_NUM = 2
-let s:PROMPT_STRING = 'echo> '
+let s:PROMPT_STRING = 'VimConsole> '
 let s:FILETYPE = 'vim'
 let s:objects = get(s:,'objects',[])
 
@@ -47,6 +47,7 @@ function! vimconsole#assert(expr,obj,...)
       let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
     endif
   endif
+  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
   call s:logged_events({ 'tag' : 'vimconsole#assert' })
 endfunction
 
@@ -56,6 +57,7 @@ function! vimconsole#log(obj,...)
   else
     let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
   endif
+  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
   call s:logged_events({ 'tag' : 'vimconsole#log' })
 endfunction
 
@@ -65,6 +67,7 @@ function! vimconsole#warn(obj,...)
   else
     let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : deepcopy(a:obj) } ] + s:objects
   endif
+  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
   call s:logged_events({ 'tag' : 'vimconsole#warn' })
 endfunction
 
@@ -74,6 +77,7 @@ function! vimconsole#error(obj,...)
   else
     let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : deepcopy(a:obj) } ] + s:objects
   endif
+  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
   call s:logged_events({ 'tag' : 'vimconsole#error' })
 endfunction
 
