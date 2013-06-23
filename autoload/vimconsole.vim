@@ -158,7 +158,8 @@ endfunction
 
 function! s:get_log()
   let rtn = [ 'dummy', 'dummy' ]
-  let start = len(rtn)
+  let reserved_lines_len = len(rtn)
+  let start = reserved_lines_len
   for obj in s:objects
     let lines = s:object2lines(obj)
 
@@ -169,7 +170,7 @@ function! s:get_log()
 
     let start = obj.last
   endfor
-  let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - 1 )
+  let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - reserved_lines_len )
   let rtn[1] = '>'
   return join(rtn,"\n")
 endfunction
@@ -195,7 +196,7 @@ function! vimconsole#foldtext()
 endfunction
 
 function! vimconsole#bufenter()
-  call cursor(s:PROMPT_LINE_NUM,0)
+  call cursor(s:PROMPT_LINE_NUM,1)
   call feedkeys('A')
 endfunction
 
@@ -259,6 +260,10 @@ function! vimconsole#winopen()
     execute 'resize ' . g:vimconsole#height
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
     setlocal filetype=vimconsole
+    augroup vimconsole
+      autocmd!
+      autocmd InsertEnter <buffer> call cursor(s:PROMPT_LINE_NUM,2)
+    augroup END
     if g:vimconsole#plain_mode
       setlocal foldmethod=manual
     else
