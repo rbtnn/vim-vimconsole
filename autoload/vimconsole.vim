@@ -2,6 +2,7 @@
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:PROMPT_LINE_NUM = 2
+let s:PROMPT_STRING = '>'
 let s:objects = get(s:,'objects',[])
 
 function! vimconsole#test()
@@ -171,7 +172,7 @@ function! s:get_log()
     let start = obj.last
   endfor
   let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - reserved_lines_len )
-  let rtn[1] = '>'
+  let rtn[1] = s:PROMPT_STRING
   return join(rtn,"\n")
 endfunction
 
@@ -181,11 +182,9 @@ function! vimconsole#redraw()
     let bufnr = winbufnr(winnr)
     if getbufvar(bufnr,'&filetype') ==# 'vimconsole'
       execute winnr . "wincmd w"
-      " setlocal noreadonly
       silent % delete _
       silent put=s:get_log()
       silent 1 delete _
-      " setlocal readonly
     endif
   endfor
   execute curr_winnr . "wincmd w"
@@ -196,29 +195,41 @@ function! vimconsole#foldtext()
 endfunction
 
 function! vimconsole#bufenter()
-  call cursor(s:PROMPT_LINE_NUM,1)
-  call feedkeys('A')
+  let prompt_line = getline(s:PROMPT_LINE_NUM)
+  call vimconsole#redraw()
+  if prompt_line =~# '^' . s:PROMPT_STRING
+    call setline(s:PROMPT_LINE_NUM, prompt_line)
+  else
+    call setline(s:PROMPT_LINE_NUM, s:PROMPT_STRING)
+  endif
+  call cursor(s:PROMPT_LINE_NUM,len(getline(s:PROMPT_LINE_NUM))+1)
 endfunction
 
 function! s:i_key_cr()
   if line('.') == s:PROMPT_LINE_NUM
-    let m = matchlist(getline('.'), '^>\(.*\)$')
+    let m = matchlist(getline('.'), '^' . s:PROMPT_STRING . '\(.*\)$')
     if ! empty(m)
-      call vimconsole#log(eval(m[1]))
-      call vimconsole#redraw()
-      call vimconsole#bufenter()
+      if ! empty(m[1])
+        call vimconsole#log(eval(m[1]))
+        call setline(s:PROMPT_LINE_NUM, s:PROMPT_STRING)
+        call vimconsole#bufenter()
+      endif
     endif
   endif
 endfunction
 
 function! s:define_key_mappings()
   inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
+  nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
 endfunction
 
 function! s:define_highlight_syntax()
-  syn match   vimconsoleTitle     '^\%1l.*$'
-  syn match   vimconsolePrompt    '^\%2l.*$'
-  syn match   vimconsoleID    '^..\(-\||\)' containedin=ALL
+  " containedin=ALL
+  execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
+  syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
+  " normal
+  syn match   vimconsoleTitle               '^\%1l.*$'
+  syn match   vimconsolePromptInputString   '^\%2l.*$'
   syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
   syn match   vimconsoleString      /^ 1\(-\||\).*$/
   syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
@@ -228,8 +239,9 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleError       /^ 6\(-\||\).*$/
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
 
-  hi def link vimconsoleTitle      Title
-  hi def link vimconsolePrompt     Statement
+  hi def link vimconsoleTitle                 Title
+  hi def link vimconsolePromptInputString     Statement
+  hi def link vimconsolePromptString          SpecialKey
   hi def link vimconsoleNumber     Normal
   hi def link vimconsoleString     Normal
   hi def link vimconsoleFuncref    Normal
@@ -239,11 +251,11 @@ function! s:define_highlight_syntax()
   hi def link vimconsoleFloat      Normal
 
   if g:vimconsole#plain_mode
-    hi def link vimconsoleID         Normal
+    hi def link vimconsoleHidden     Normal
     hi def link vimconsoleError      Normal
     hi def link vimconsoleWarning    Normal
   else
-    hi def link vimconsoleID         Ignore
+    hi def link vimconsoleHidden     Ignore
     hi def link vimconsoleError      Error
     hi def link vimconsoleWarning    WarningMsg
   endif
@@ -262,7 +274,7 @@ function! vimconsole#winopen()
     setlocal filetype=vimconsole
     augroup vimconsole
       autocmd!
-      autocmd InsertEnter <buffer> call cursor(s:PROMPT_LINE_NUM,2)
+      autocmd InsertEnter <buffer> call vimconsole#bufenter()
     augroup END
     if g:vimconsole#plain_mode
       setlocal foldmethod=manual
