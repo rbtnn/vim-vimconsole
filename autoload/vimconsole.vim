@@ -3,7 +3,7 @@ let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:PROMPT_LINE_NUM = 2
 let s:PROMPT_STRING = 'VimConsole> '
-let s:FILETYPE = 'vim'
+let s:FILETYPE = 'vimconsole'
 let s:objects = get(s:,'objects',[])
 
 
