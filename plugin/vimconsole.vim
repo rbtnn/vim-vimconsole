@@ -1,5 +1,4 @@
 
-
 scriptencoding utf-8
 
 if exists("g:loaded_vimconsole")
@@ -16,12 +15,13 @@ let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
 let g:vimconsole#plain_mode = get(g:,'vimconsole#plain_mode', 0)
 let g:vimconsole#maximum_caching_objects_count = get(g:,'vimconsole#maximum_caching_objects_count', 20)
 
-command! -nargs=0 VimConsoleOpen   :call vimconsole#winopen()
-command! -nargs=0 VimConsoleClose  :call vimconsole#winclose()
-command! -nargs=0 VimConsoleClear  :call vimconsole#clear()
-command! -nargs=0 VimConsoleRedraw :call vimconsole#redraw()
-command! -nargs=0 VimConsoleTest   :call vimconsole#test()
-command! -nargs=0 VimConsoleToggle :call vimconsole#wintoggle()
+command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
+command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
+command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
+command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
+command! -nargs=0 -bar VimConsoleTest   :call vimconsole#test()
+command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
+
 command! -nargs=1 -complete=expression VimConsole        :call vimconsole#log(<args>)
 command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
 command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)

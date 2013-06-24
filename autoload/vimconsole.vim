@@ -8,6 +8,14 @@ let s:objects = get(s:,'objects',[])
 
 
 function! vimconsole#test()
+  VimConsoleClose
+  VimConsoleOpen
+  VimConsoleToggle
+  VimConsoleClear
+  VimConsoleLog 2342
+  VimConsoleWarn 2342
+  VimConsoleError 2342
+  VimConsoleClose | VimConsoleOpen | VimConsoleToggle | VimConsoleClear
   call vimconsole#clear()
   call vimconsole#log(123)
   call vimconsole#log("hoge\nfoo")
@@ -20,6 +28,7 @@ function! vimconsole#test()
   call vimconsole#assert(0,"(false) this is assert message.")
   call vimconsole#warn("this is %s message.", 'warn')
   call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
+  VimConsoleOpen
 endfunction
 
 function! s:is_vimconsole_window(bufnr)
@@ -95,6 +104,16 @@ function! vimconsole#wintoggle()
   if ! close_flag
     call vimconsole#winopen()
   endif
+endfunction
+
+function! vimconsole#is_open()
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      return 1
+    endif
+  endfor
+  return 0
 endfunction
 
 function! vimconsole#winclose()
@@ -186,11 +205,15 @@ function! s:get_log()
   return join(rtn,"\n")
 endfunction
 
-function! vimconsole#redraw()
+function! vimconsole#redraw(...)
+  let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
   let curr_winnr = winnr()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
     if s:is_vimconsole_window(bufnr)
+      if bang
+        call vimconsole#clear()
+      endif
       execute winnr . "wincmd w"
       silent % delete _
       silent put=s:get_log()
@@ -271,9 +294,19 @@ function! s:define_highlight_syntax()
   endif
 endfunction
 
-function! vimconsole#winopen()
+function! vimconsole#winopen(...)
+  let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
+
   let curr_winnr = winnr()
-  call vimconsole#winclose()
+
+  if vimconsole#is_open()
+    if bang
+      call vimconsole#winclose()
+    else
+      return 0
+    endif
+  endif
+
   let tmp = &splitbelow
   try
     setlocal splitbelow
