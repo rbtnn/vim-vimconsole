@@ -1,8 +1,8 @@
 
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
-let s:PROMPT_LINE_NUM = 2
-let s:PROMPT_STRING = 'VimConsole> '
+let s:PROMPT_LINE_NUM = 1
+let s:PROMPT_STRING = 'VimConsole>'
 let s:FILETYPE = 'vimconsole'
 let s:objects = get(s:,'objects',[])
 
@@ -158,12 +158,12 @@ function! s:object2lines(obj)
       endfor
       let lines += [ ']' ]
     endif
-  elseif type("") == a:obj.type
-    let lines += split(a:obj.value,"\n")
-  elseif s:TYPE_ERROR == a:obj.type
-    let lines += split(a:obj.value,"\n")
-  elseif s:TYPE_WARN == a:obj.type
-    let lines += split(a:obj.value,"\n")
+  elseif s:TYPE_ERROR == a:obj.type || s:TYPE_WARN == a:obj.type
+    if empty(a:obj.value)
+      let lines += [""]
+    else
+      let lines += split(a:obj.value,"\n")
+    endif
   else
     let lines += [ string(a:obj.value) ]
   endif
@@ -187,7 +187,7 @@ function! vimconsole#at(...)
 endfunction
 
 function! s:get_log()
-  let rtn = [ 'dummy', 'dummy' ]
+  let rtn = [ s:PROMPT_STRING ]
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
   for obj in s:objects
@@ -200,8 +200,6 @@ function! s:get_log()
 
     let start = obj.last
   endfor
-  let rtn[0] = printf('-- Vim Console (%d objects / %d lines) --', len(s:objects), len(rtn) - reserved_lines_len )
-  let rtn[1] = s:PROMPT_STRING
   return join(rtn,"\n")
 endfunction
 
@@ -261,8 +259,7 @@ function! s:define_highlight_syntax()
   execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
   syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
   " normal
-  syn match   vimconsoleTitle               '^\%1l.*$'
-  syn match   vimconsolePromptInputString   '^\%2l.*$'
+  syn match   vimconsolePromptInputString   '^\%1l.*$'
   syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
   syn match   vimconsoleString      /^ 1\(-\||\).*$/
   syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
@@ -272,8 +269,7 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleError       /^ 6\(-\||\).*$/
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
 
-  hi def link vimconsoleTitle                 Title
-  hi def link vimconsolePromptInputString     Statement
+  hi def link vimconsolePromptInputString     Title
   hi def link vimconsolePromptString          SpecialKey
   hi def link vimconsoleNumber     Normal
   hi def link vimconsoleString     Normal
