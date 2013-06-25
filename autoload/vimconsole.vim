@@ -1,6 +1,7 @@
 
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
+let s:TYPE_PROMPT = 8
 let s:PROMPT_LINE_NUM = 1
 let s:PROMPT_STRING = 'VimConsole>'
 let s:FILETYPE = 'vimconsole'
@@ -48,45 +49,34 @@ function! vimconsole#clear()
   let s:objects = []
 endfunction
 
-function! vimconsole#assert(expr,obj,...)
-  if a:expr
-    if 0 < a:0
-      let s:objects = [ { 'type' : type("") , 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
-    else
-      let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
-    endif
+function! s:add_log(true_type,false_type,value,list)
+  if 0 < len(a:list)
+    let s:objects = [ { 'type' : a:true_type, 'value' : call('printf',[(a:value)]+a:list) } ] + s:objects
+  else
+    let s:objects = [ { 'type' : a:false_type, 'value' : deepcopy(a:value) } ] + s:objects
   endif
   let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
+endfunction
+
+function! vimconsole#assert(expr,obj,...)
+  if a:expr
+    call s:add_log(type(""),type(a:obj),a:obj,a:000)
+  endif
   call s:logged_events({ 'tag' : 'vimconsole#assert' })
 endfunction
 
 function! vimconsole#log(obj,...)
-  if 0 < a:0
-    let s:objects = [ { 'type' : type("") , 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
-  else
-    let s:objects = [ { 'type' : type(a:obj) , 'value' : deepcopy(a:obj) } ] + s:objects
-  endif
-  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
+  call s:add_log(type(""),type(a:obj),a:obj,a:000)
   call s:logged_events({ 'tag' : 'vimconsole#log' })
 endfunction
 
 function! vimconsole#warn(obj,...)
-  if 0 < a:0
-    let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
-  else
-    let s:objects = [ { 'type' : s:TYPE_WARN, 'value' : deepcopy(a:obj) } ] + s:objects
-  endif
-  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
+  call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
   call s:logged_events({ 'tag' : 'vimconsole#warn' })
 endfunction
 
 function! vimconsole#error(obj,...)
-  if 0 < a:0
-    let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : call('printf',[(a:obj)]+a:000) } ] + s:objects
-  else
-    let s:objects = [ { 'type' : s:TYPE_ERROR, 'value' : deepcopy(a:obj) } ] + s:objects
-  endif
-  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
+  call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
   call s:logged_events({ 'tag' : 'vimconsole#error' })
 endfunction
 
@@ -158,19 +148,23 @@ function! s:object2lines(obj)
       endfor
       let lines += [ ']' ]
     endif
+  elseif type(0) == a:obj.type
+    let lines += [ a:obj.value ]
   elseif s:TYPE_ERROR == a:obj.type || s:TYPE_WARN == a:obj.type
     if empty(a:obj.value)
       let lines += [""]
     else
       let lines += split(a:obj.value,"\n")
     endif
+  elseif s:TYPE_PROMPT == a:obj.type
+    let lines += [ a:obj.value ]
   else
-    let lines += [ string(a:obj.value) ]
+    let lines += map(split(a:obj.value,"\n"),'string(v:val)')
   endif
   if g:vimconsole#plain_mode
     return lines
   else
-    return [printf('%2s-%s', a:obj.type, lines[0])] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
+    return [printf('%2s-%s', a:obj.type, get(lines,0,''))] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
   endif
 endfunction
 
@@ -238,10 +232,12 @@ endfunction
 
 function! s:i_key_cr()
   if line('.') == s:PROMPT_LINE_NUM
-    let m = matchlist(getline('.'), '^' . s:PROMPT_STRING . '\(.*\)$')
+    let line = getline('.')
+    let m = matchlist(line, '^' . s:PROMPT_STRING . '\(.*\)$')
     if ! empty(m)
       if ! empty(m[1])
         call vimconsole#log(eval(m[1]))
+        call s:add_log(s:TYPE_PROMPT,s:TYPE_PROMPT,line,[])
         call setline(s:PROMPT_LINE_NUM, s:PROMPT_STRING)
         call vimconsole#bufenter()
       endif
@@ -268,6 +264,7 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleFloat       /^ 5\(-\||\).*$/
   syn match   vimconsoleError       /^ 6\(-\||\).*$/
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
+  syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
 
   hi def link vimconsolePromptInputString     Title
   hi def link vimconsolePromptString          SpecialKey
@@ -278,6 +275,7 @@ function! s:define_highlight_syntax()
   hi def link vimconsoleDictionary Normal
   hi def link vimconsoleFloat      Normal
   hi def link vimconsoleFloat      Normal
+  hi def link vimconsolePrompt     Title
 
   if g:vimconsole#plain_mode
     hi def link vimconsoleHidden     Normal
