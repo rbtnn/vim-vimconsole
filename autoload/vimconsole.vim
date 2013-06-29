@@ -45,9 +45,6 @@ function! s:logged_events(context)
   endif
 endfunction
 
-function! vimconsole#clear()
-  let s:objects = []
-endfunction
 
 function! s:add_log(true_type,false_type,value,list)
   if 0 < len(a:list)
@@ -56,6 +53,11 @@ function! s:add_log(true_type,false_type,value,list)
     let s:objects = [ { 'type' : a:false_type, 'value' : deepcopy(a:value) } ] + s:objects
   endif
   let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
+endfunction
+
+function! vimconsole#clear()
+  let s:objects = []
+  call s:logged_events({ 'tag' : 'vimconsole#clear' })
 endfunction
 
 function! vimconsole#assert(expr,obj,...)
@@ -303,11 +305,22 @@ function! vimconsole#winopen(...)
 
   let tmp = &splitbelow
   try
-    setlocal splitbelow
-    execute "wincmd b"
     new
+    if g:vimconsole#split_rule ==# 'top'
+      execute "wincmd K"
+      execute 'resize ' . g:vimconsole#height
+    elseif g:vimconsole#split_rule ==# 'left'
+      execute "wincmd H"
+      execute 'vertical resize ' . g:vimconsole#width
+    elseif g:vimconsole#split_rule ==# 'right'
+      execute "wincmd L"
+      execute 'vertical resize ' . g:vimconsole#width
+    else
+      " defalut: bottom
+      execute "wincmd J"
+      execute 'resize ' . g:vimconsole#height
+    endif
     let b:vimconsole = 1
-    execute 'resize ' . g:vimconsole#height
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
     execute 'setlocal filetype=' . s:FILETYPE
     augroup vimconsole

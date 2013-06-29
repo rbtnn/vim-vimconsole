@@ -38,6 +38,18 @@ This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
 ==============================================================================
 VARIABLES 			          *vimconsole-variables*
 
+* g:vimconsole#split_rule                 *vimconsole-vimconsole#split_rule* 
+
+Split position rule. This can have one of following values. default: 'bottom'
+
+'top', 'bottom', 'right', 'left'
+
+
+* g:vimconsole#width                      *vimconsole-vimconsole#width* 
+
+VimConsole's window width. default: 40
+
+
 * g:vimconsole#height                     *vimconsole-vimconsole#height* 
 
 VimConsole's window height. default: 6

@@ -9,11 +9,14 @@ let g:loaded_vimconsole = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-let g:vimconsole#hooks = get(g:,'vimconsole#hooks',{})
 let g:vimconsole#height = get(g:,'vimconsole#height',6)
+let g:vimconsole#width = get(g:,'vimconsole#width', 40)
+
 let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
-let g:vimconsole#plain_mode = get(g:,'vimconsole#plain_mode', 0)
+let g:vimconsole#hooks = get(g:,'vimconsole#hooks',{})
 let g:vimconsole#maximum_caching_objects_count = get(g:,'vimconsole#maximum_caching_objects_count', 20)
+let g:vimconsole#plain_mode = get(g:,'vimconsole#plain_mode', 0)
+let g:vimconsole#split_rule = get(g:,'vimconsole#split_rule', 'bottom')
 
 command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
 command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
