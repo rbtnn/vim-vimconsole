@@ -38,6 +38,11 @@ This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
 ==============================================================================
 VARIABLES 			          *vimconsole-variables*
 
+* g:vimconsole#desending                  *vimconsole-vimconsole#desending* 
+
+Reverse VimConsole's logs. default: 0
+
+
 * g:vimconsole#split_rule                 *vimconsole-vimconsole#split_rule* 
 
 Split position rule. This can have one of following values. default: 'bottom'
@@ -57,7 +62,7 @@ VimConsole's window height. default: 6
 
 * g:vimconsole#auto_redraw                *vimconsole-vimconsole#auto_redraw* 
 
-When print to VimConsole, call |vimconsole#redraw()|. default: 0
+When print to VimConsole, call |vimconsole#redraw()|automatically. default: 0
 
 
 * g:vimconsole#maximum_caching_objects_count

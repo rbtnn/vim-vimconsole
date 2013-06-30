@@ -186,7 +186,7 @@ function! s:get_log()
   let rtn = [ s:PROMPT_STRING ]
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
-  for obj in s:objects
+  for obj in (g:vimconsole#desending ? reverse(copy(s:objects)) : s:objects)
     let lines = s:object2lines(obj)
 
     let obj.start = start + 1
@@ -238,8 +238,13 @@ function! s:i_key_cr()
     let m = matchlist(line, '^' . s:PROMPT_STRING . '\(.*\)$')
     if ! empty(m)
       if ! empty(m[1])
-        call vimconsole#log(eval(m[1]))
-        call s:add_log(s:TYPE_PROMPT,s:TYPE_PROMPT,line,[])
+        if g:vimconsole#desending
+          call s:add_log(s:TYPE_PROMPT,s:TYPE_PROMPT,line,[])
+          call vimconsole#log(eval(m[1]))
+        else
+          call vimconsole#log(eval(m[1]))
+          call s:add_log(s:TYPE_PROMPT,s:TYPE_PROMPT,line,[])
+        endif
         call setline(s:PROMPT_LINE_NUM, s:PROMPT_STRING)
         call vimconsole#bufenter()
       endif
