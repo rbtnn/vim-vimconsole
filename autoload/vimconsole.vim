@@ -55,6 +55,10 @@ function! s:add_log(true_type,false_type,value,list)
   let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
 endfunction
 
+function! vimconsole#dump(path)
+  silent! call writefile(split(s:get_log(),"\n"),a:path)
+endfunction
+
 function! vimconsole#clear()
   let s:objects = []
   call s:logged_events({ 'tag' : 'vimconsole#clear' })

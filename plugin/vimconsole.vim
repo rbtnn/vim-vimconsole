@@ -19,6 +19,7 @@ let g:vimconsole#hooks = get(g:,'vimconsole#hooks',{})
 let g:vimconsole#maximum_caching_objects_count = get(g:,'vimconsole#maximum_caching_objects_count', 20)
 let g:vimconsole#plain_mode = get(g:,'vimconsole#plain_mode', 0)
 let g:vimconsole#split_rule = get(g:,'vimconsole#split_rule', 'bottom')
+let g:vimconsole#dump_path = get(g:,'vimconsole#dump_path', expand('~/vimconsole.dump'))
 
 command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
 command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
@@ -26,11 +27,29 @@ command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
 command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
 command! -nargs=0 -bar VimConsoleTest   :call vimconsole#test()
 command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
+command! -nargs=0 -bar VimConsoleDump   :call vimconsole#dump(g:vimconsole#dump_path)
 
 command! -nargs=1 -complete=expression VimConsole        :call vimconsole#log(<args>)
 command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
 command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
 command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
+
+function! s:break_point()
+  while 1
+    let in = input('>','','command')
+    if empty(in)
+      break
+    endif
+    redraw!
+    try
+      execute in
+    catch /.*/
+      VimConsoleError v:exception
+    endtry
+    redraw!
+  endwhile
+endfunction
+command! -nargs=0 -bar VimConsoleBreakPoint :call s:break_point()
 
 let &cpo = s:save_cpo
 finish
