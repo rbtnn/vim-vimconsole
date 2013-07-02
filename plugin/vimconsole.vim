@@ -34,23 +34,6 @@ command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<a
 command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
 command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
 
-function! s:break_point()
-  while 1
-    let in = input('>','','command')
-    if empty(in)
-      break
-    endif
-    redraw!
-    try
-      execute in
-    catch /.*/
-      VimConsoleError v:exception
-    endtry
-    redraw!
-  endwhile
-endfunction
-command! -nargs=0 -bar VimConsoleBreakPoint :call s:break_point()
-
 let &cpo = s:save_cpo
 finish
 
