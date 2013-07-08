@@ -27,6 +27,8 @@ CONTENTS					 *vimconsole-contents*
 Variables		|vimconsole-variables|
 Commands                |vimconsole-commands|
 Functions               |vimconsole-functions|
+Key Mappings            |vimconsole-key-mappings|
+
 
 ==============================================================================
 
@@ -35,185 +37,214 @@ It is like Google Chrome Developer Console.
 
 This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
 
+
 ==============================================================================
-VARIABLES 			          *vimconsole-variables*
+VARIABLES                       *vimconsole-variables*
 
 * g:vimconsole#desending                  *vimconsole-vimconsole#desending* 
 
-Reverse VimConsole's logs. default: 0
+    Reverse VimConsole's logs. default: 0
 
 
 * g:vimconsole#split_rule                 *vimconsole-vimconsole#split_rule* 
 
-Split position rule. This can have one of following values. default: 'bottom'
+    Split position rule. This can have one of following values. default: 'bottom'
 
-'top', 'bottom', 'right', 'left'
+    'top', 'bottom', 'right', 'left'
 
 
 * g:vimconsole#width                      *vimconsole-vimconsole#width* 
 
-VimConsole's window width. default: 40
+    VimConsole's window width. default: 40
 
 
 * g:vimconsole#height                     *vimconsole-vimconsole#height* 
 
-VimConsole's window height. default: 6
+    VimConsole's window height. default: 6
 
 
 * g:vimconsole#auto_redraw                *vimconsole-vimconsole#auto_redraw* 
 
-When print to VimConsole, call |vimconsole#redraw()|automatically. default: 0
+    When print to VimConsole, call |vimconsole#redraw()|automatically. default: 0
 
 
 * g:vimconsole#maximum_caching_objects_count
                           *vimconsole-vimconsole#maximum_caching_objects_count* 
 
-Maximum objects count caching by VimConsole. default: 20
+    Maximum objects count caching by VimConsole. default: 20
 
 
 * g:vimconsole#plain_mode                 *vimconsole-vimconsole#plain_mode* 
 
-Disable highlight, fold and prefix-string('1-','1|'.. ,etc)
-in VimConsole. default: 0
+    Disable highlight, fold and prefix-string('1-','1|'.. ,etc)
+    in VimConsole. default: 0
+
+
+* g:vimconsole#dump_path                  *vimconsole-vimconsole#dump_path* 
+
+    See |VimConsoleDump|.
+
+* g:vimconsole#enable_quoted_string       *vimconsole-vimconsole#enable_quoted_string* 
+
+    Print a string with single-quote, if its type is `type('')`.
+    default: 1
 
 
 * g:vimconsole#hooks                      *vimconsole-vimconsole#looks* 
 
-This value is `{}`. This can have following keys.
+    This value is `{}`. This can have following keys.
 
-    on_logged: This is a function reference.
-               If g:vimconsole#hooks has this key, call this after logging by
-               a logging function (vimconsole#log, vimconsole#warn,... ,etc.).
+        on_logged: This is a function reference.
+            If g:vimconsole#hooks has this key, call this after logging by
+            a logging function (vimconsole#log, vimconsole#warn,... ,etc.).
 
-               Example:
+            Example:
 >
-               function! MyOnLoggedF(context)
-                 " `a:context`'s value is such as `{ 'tag' : 'vimconsole#assert' }`.
-                 echo a:context.tag
-               endfunction
-               let g:vimconsole#hooks.on_logged = function('MyOnLoggedF')
+            function! MyOnLoggedF(context)
+              " `a:context`'s value is such as `{ 'tag' : 'vimconsole#assert' }`.
+              echo a:context.tag
+            endfunction
+            let g:vimconsole#hooks.on_logged = function('MyOnLoggedF')
 <
 
 ==============================================================================
-COMMANDS 					 *vimconsole-commands*
+COMMANDS                      *vimconsole-commands*
 
 * :VimConsole {obj}                              *vimconsole-VimConsole*
 
-Print to VimConsole.
-Same as `vimconsole#log({obj},...)`.
+    Print to VimConsole.
+    Same as `vimconsole#log({obj},...)`.
 
 
 * :VimConsoleLog {obj}                           *vimconsole-VimConsoleLog*
 
-Print to VimConsole.
-Same as `vimconsole#log({obj},...)`.
+    Print to VimConsole.
+    Same as `vimconsole#log({obj},...)`.
 
 
 * :VimConsoleWarn {obj}                          *vimconsole-VimConsoleWarn*
 
-Print to VimConsole.
-Same as `vimconsole#warn({obj},...)`.
+    Print to VimConsole.
+    Same as `vimconsole#warn({obj},...)`.
 
 
 * :VimConsoleError {obj}                         *vimconsole-VimConsoleError*
 
-Print to VimConsole.
-Same as `vimconsole#error({obj},...)`.
+    Print to VimConsole.
+    Same as `vimconsole#error({obj},...)`.
 
 
 * :VimConsoleOpen[!]                             *vimconsole-VimConsoleOpen*
 
-Open VimConsole when VimConsole is closed.
-Do nothing when VimConsole is opened (don't call vimconsole#redraw).
-If with bang, force call vimconsole#redraw.  
+    Open VimConsole when VimConsole is closed.
+    Do nothing when VimConsole is opened (don't call vimconsole#redraw).
+    If with bang, force call vimconsole#redraw.  
 
 
 * :VimConsoleClose                               *vimconsole-VimConsoleClose*
 
-Close VimConsole.
+    Close VimConsole.
 
 
 * :VimConsoleToggle                              *vimconsole-VimConsoleToggle*
 
-Toggle VimConsole. 
+    Toggle VimConsole. 
 
 
 * :VimConsoleClear                               *vimconsole-VimConsoleClear*
 
-Clear logs of VimConsole.
+    Clear logs of VimConsole.
 
 
 * :VimConsoleRedraw[!]                            *vimconsole-VimConsoleRedraw*
 
-Redraw VimConsole.
-If with bang, call vimconsole#clear before to redraw.  
+    Redraw VimConsole.
+    If with bang, call vimconsole#clear before to redraw.  
+
+
+* :VimConsoleDump                                 *vimconsole-VimConsoleDump*
+
+    Dump VimConsole's logs to |g:vimxonsole#dump_path|.
 
 
 ==============================================================================
-FUNCTIONS 			              *vimconsole-functions*
+FUNCTIONS                           *vimconsole-functions*
 
 * vimconsole#assert(expr,obj,...)             *vimconsole-vimconsole#assert()*
 
-It is like javascript's `console.assert({expr},{obj},...)`.
-This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
+    It is like javascript's `console.assert({expr},{obj},...)`.
+    This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
 
 * vimconsole#log(obj,...)                    *vimconsole-vimconsole#log()*
 
-It is like javascript's `console.log({obj},...)`.
-This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
+    It is like javascript's `console.log({obj},...)`.
+    This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
 
 * vimconsole#warn(obj,...)                   *vimconsole-vimconsole#warning()*
 
-It is like javascript's `console.warn({obj},...)`.
-This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
+    It is like javascript's `console.warn({obj},...)`.
+    This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
 
 * vimconsole#error(obj,...)                  *vimconsole-vimconsole#error()*
 
-It is like javascript's `console.error({obj},...)`.
-This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
+    It is like javascript's `console.error({obj},...)`.
+    This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
 
 * vimconsole#winopen([{bang}])                *vimconsole-vimconsole#winopen()*
 
-Same as |VimConsoleOpen|.
+    Same as |VimConsoleOpen|.
 
 
 * vimconsole#winclose()                       *vimconsole-vimconsole#winclose()*
 
-Same as |VimConsoleClose|.
+    Same as |VimConsoleClose|.
 
 
 * vimconsole#wintoggle()                      *vimconsole-vimconsole#wintoggle()*
 
-Same as |VimConsoleToggle|.
+    Same as |VimConsoleToggle|.
 
 
 * vimconsole#clear()                          *vimconsole-vimconsole#clear()*
 
-Same as |VimConsoleClear|.
+    Same as |VimConsoleClear|.
 
 
 * vimconsole#redraw([{bang}])                 *vimconsole-vimconsole#redraw()*
 
-Same as |VimConsoleRedraw|.
+    Same as |VimConsoleRedraw|.
 
 
 * vimconsole#at(...)                          *vimconsole-vimconsole#at()*
 
-Return the object of the specified line.
-The object is deepcopy object. So you can not rewrite the object.
-First argument of {...} is a line number at VimConsole. default:`line(".")`
-Return `{}` if the argument is invalid.
+    Return the object of the specified line.
+    The object is deepcopy object. So you can not rewrite the object.
+    First argument of {...} is a line number at VimConsole. default:`line(".")`
+    Return `{}` if the argument is invalid.
 
 
 * vimconsole#is_open()                        *vimconsole-vimconsole#is_open()*
 
-1 is returned when VimConsole is opened. 
-0 is returned when VimConsole is closed. 
+    1 is returned when VimConsole is opened. 
+    0 is returned when VimConsole is closed. 
 
  
+* vimconsole#dump(path)                       *vimconsole-vimconsole#dump(path)*
+
+    Same as |VimConsoleDump|.
+
+
+------------------------------------------------------------------------------
+KEY MAPPINGS                                    *vimconsole-key-mappings*
+
+<Plug>(vimconsole_close)                        *<Plug>(vimconsole_close)*
+
+    Same as |VimConsoleClose|.
+
+
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:fdl=0:

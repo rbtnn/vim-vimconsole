@@ -164,6 +164,12 @@ function! s:object2lines(obj)
     endif
   elseif s:TYPE_PROMPT == a:obj.type
     let lines += [ a:obj.value ]
+  elseif type('') == a:obj.type
+    if g:vimconsole#enable_quoted_string
+      let lines += map(split(a:obj.value,"\n"),'string(v:val)')
+    else
+      let lines += split(a:obj.value,"\n")
+    endif
   else
     let lines += map(split(a:obj.value,"\n"),'string(v:val)')
   endif
