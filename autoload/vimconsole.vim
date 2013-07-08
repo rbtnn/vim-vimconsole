@@ -266,6 +266,8 @@ function! s:define_key_mappings()
   inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
   nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
 endfunction
 
 function! s:define_highlight_syntax()
