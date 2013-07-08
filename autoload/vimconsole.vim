@@ -284,25 +284,25 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
   syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
 
-  hi def link vimconsolePromptInputString     Title
-  hi def link vimconsolePromptString          SpecialKey
-  hi def link vimconsoleNumber     Normal
-  hi def link vimconsoleString     Normal
-  hi def link vimconsoleFuncref    Normal
-  hi def link vimconsoleList       Normal
-  hi def link vimconsoleDictionary Normal
-  hi def link vimconsoleFloat      Normal
-  hi def link vimconsoleFloat      Normal
-  hi def link vimconsolePrompt     Title
+  hi! def link vimconsolePromptInputString     Title
+  hi! def link vimconsolePromptString          SpecialKey
+  hi! def link vimconsoleNumber     Normal
+  hi! def link vimconsoleString     Normal
+  hi! def link vimconsoleFuncref    Normal
+  hi! def link vimconsoleList       Normal
+  hi! def link vimconsoleDictionary Normal
+  hi! def link vimconsoleFloat      Normal
+  hi! def link vimconsoleFloat      Normal
+  hi! def link vimconsolePrompt     Title
 
   if g:vimconsole#plain_mode
-    hi def link vimconsoleHidden     Normal
-    hi def link vimconsoleError      Normal
-    hi def link vimconsoleWarning    Normal
+    hi! def link vimconsoleHidden     Normal
+    hi! def link vimconsoleError      Normal
+    hi! def link vimconsoleWarning    Normal
   else
-    hi def link vimconsoleHidden     Ignore
-    hi def link vimconsoleError      Error
-    hi def link vimconsoleWarning    WarningMsg
+    hi! def link vimconsoleHidden     Ignore
+    hi! def link vimconsoleError      Error
+    hi! def link vimconsoleWarning    WarningMsg
   endif
 endfunction
 
