@@ -1,35 +1,16 @@
-
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:TYPE_PROMPT = 8
 let s:PROMPT_LINE_NUM = 1
 let s:PROMPT_STRING = 'VimConsole>'
 let s:FILETYPE = 'vimconsole'
-let s:objects = get(s:,'objects',[])
 
-
-function! vimconsole#test()
-  VimConsoleClose
-  VimConsoleOpen
-  VimConsoleToggle
-  VimConsoleClear
-  VimConsoleLog 2342
-  VimConsoleWarn 2342
-  VimConsoleError 2342
-  VimConsoleClose | VimConsoleOpen | VimConsoleToggle | VimConsoleClear
-  call vimconsole#clear()
-  call vimconsole#log(123)
-  call vimconsole#log("hoge\nfoo")
-  call vimconsole#error("this is error message.")
-  call vimconsole#log([ 1,2,3,4,5 ])
-  call vimconsole#log(function('vimconsole#test'))
-  call vimconsole#log(function('tr'))
-  call vimconsole#warn("this is warn message.")
-  call vimconsole#assert(1,"(true) this is assert message.")
-  call vimconsole#assert(0,"(false) this is assert message.")
-  call vimconsole#warn("this is %s message.", 'warn')
-  call vimconsole#log({ 'A' : 23, 'B' : { 'C' : 0.034 } })
-  VimConsoleOpen
+function! s:object(...)
+  if 0 < a:0
+    let n = g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1
+    let t:objs = ([ a:1 ] + get(t:,'objs',[]))[:(n)]
+  endif
+  return get(t:,'objs',[])
 endfunction
 
 function! s:is_vimconsole_window(bufnr)
@@ -45,14 +26,12 @@ function! s:logged_events(context)
   endif
 endfunction
 
-
 function! s:add_log(true_type,false_type,value,list)
   if 0 < len(a:list)
-    let s:objects = [ { 'type' : a:true_type, 'value' : call('printf',[(a:value)]+a:list) } ] + s:objects
+    call s:object({ 'type' : a:true_type, 'value' : call('printf',[(a:value)]+a:list) })
   else
-    let s:objects = [ { 'type' : a:false_type, 'value' : deepcopy(a:value) } ] + s:objects
+    call s:object({ 'type' : a:false_type, 'value' : deepcopy(a:value) })
   endif
-  let s:objects = s:objects[:(g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1)]
 endfunction
 
 function! vimconsole#dump(path)
@@ -60,7 +39,7 @@ function! vimconsole#dump(path)
 endfunction
 
 function! vimconsole#clear()
-  let s:objects = []
+  let t:objs = []
   call s:logged_events({ 'tag' : 'vimconsole#clear' })
 endfunction
 
@@ -96,7 +75,6 @@ function! vimconsole#wintoggle()
       let close_flag = 1
     endif
   endfor
-
   if ! close_flag
     call vimconsole#winopen()
   endif
@@ -183,7 +161,7 @@ endfunction
 function! vimconsole#at(...)
   let line_num = 0 < a:0 ? a:1 : line(".")
   if type(line_num) == type(0)
-    for obj in s:objects
+    for obj in s:object()
       if obj.start <= line_num && line_num <= obj.last
         return deepcopy(obj.value)
       endif
@@ -196,14 +174,11 @@ function! s:get_log()
   let rtn = [ s:PROMPT_STRING ]
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
-  for obj in (g:vimconsole#desending ? reverse(copy(s:objects)) : s:objects)
+  for obj in ( g:vimconsole#desending ? reverse( copy(s:object()) ) : s:object() )
     let lines = s:object2lines(obj)
-
     let obj.start = start + 1
     let obj.last = start + len(lines)
-
     let rtn += lines
-
     let start = obj.last
   endfor
   return join(rtn,"\n")
@@ -285,7 +260,7 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleError       /^ 6\(-\||\).*$/
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
   syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
-
+  "
   hi! def link vimconsolePromptInputString     Title
   hi! def link vimconsolePromptString          SpecialKey
   hi! def link vimconsoleNumber     Normal
@@ -296,7 +271,7 @@ function! s:define_highlight_syntax()
   hi! def link vimconsoleFloat      Normal
   hi! def link vimconsoleFloat      Normal
   hi! def link vimconsolePrompt     Title
-
+  "
   if g:vimconsole#plain_mode
     hi! def link vimconsoleHidden     Normal
     hi! def link vimconsoleError      Normal
@@ -310,9 +285,7 @@ endfunction
 
 function! vimconsole#winopen(...)
   let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
-
   let curr_winnr = winnr()
-
   if vimconsole#is_open()
     if bang
       call vimconsole#winclose()
@@ -320,7 +293,6 @@ function! vimconsole#winopen(...)
       return 0
     endif
   endif
-
   let tmp = &splitbelow
   try
     new
