@@ -9,7 +9,7 @@ let s:FILETYPE = 'vimconsole'
 function! s:object(...)
   if 0 < a:0
     let n = g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1
-    let t:objs = ([ a:1 ] + get(t:,'objs',[]))[:(n)]
+    let t:objs = (get(t:,'objs',[]) + [ a:1 ])[:(n)]
   endif
   return get(t:,'objs',[])
 endfunction
@@ -183,7 +183,7 @@ function! s:get_log()
   let rtn = []
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
-  for obj in ( g:vimconsole#desending ? reverse( copy(s:object()) ) : s:object() )
+  for obj in s:object()
     let lines = s:object2lines(obj)
     let obj.start = start + 1
     let obj.last = start + len(lines)
@@ -229,18 +229,11 @@ function! s:key_cr()
       let input_str = m[1]
 
       if ! empty(input_str)
+        call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
         try
-          let eval_value = eval(input_str)
-
-          if g:vimconsole#desending
-            call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
-            call vimconsole#log(eval_value)
-          else
-            call vimconsole#log(eval_value)
-            call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
-          endif
+          call vimconsole#log(eval(input_str))
         catch
-          call vimconsole#error(join([ (s:PROMPT_STRING . input_str), v:exception, v:throwpoint ], "\n"))
+          call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
         endtry
 
         call vimconsole#bufenter()
@@ -342,10 +335,7 @@ function! vimconsole#winopen(...)
     let b:vimconsole = 1
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
     execute 'setlocal filetype=' . s:FILETYPE
-    " augroup vimconsole
-    "   autocmd!
-    "   autocmd InsertEnter <buffer> call vimconsole#bufenter()
-    " augroup END
+
     if g:vimconsole#plain_mode
       setlocal foldmethod=manual
     else
@@ -353,9 +343,11 @@ function! vimconsole#winopen(...)
       setlocal foldtext=vimconsole#foldtext()
       setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
     endif
+
     call s:define_key_mappings()
     call s:define_highlight_syntax()
     call vimconsole#redraw()
+
     normal zm
   finally
     let &splitbelow = tmp
