@@ -272,7 +272,6 @@ function! s:define_highlight_syntax()
 
   syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
   " normal
-  syn match   vimconsolePromptInputString   '^\%1l.*$'
   syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
   syn match   vimconsoleString      /^ 1\(-\||\).*$/
   syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
@@ -282,8 +281,7 @@ function! s:define_highlight_syntax()
   syn match   vimconsoleError       /^ 6\(-\||\).*$/
   syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
   syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
-  "
-  hi! def link vimconsolePromptInputString     Title
+
   hi! def link vimconsolePromptString          SpecialKey
   hi! def link vimconsoleNumber     Normal
   hi! def link vimconsoleString     Normal
