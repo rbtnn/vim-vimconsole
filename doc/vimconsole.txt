@@ -241,19 +241,29 @@ FUNCTIONS                           *vimconsole-functions*
 ------------------------------------------------------------------------------
 KEY MAPPINGS                                    *vimconsole-key-mappings*
 
-<Plug>(vimconsole_close)                        *<Plug>(vimconsole_close)*
+<Plug>(vimconsole_close)                   *<Plug>(vimconsole_close)*
 
     Same as |VimConsoleClose|.
 
 
-<Plug>(vimconsole_clear)                        *<Plug>(vimconsole_clear)*
+<Plug>(vimconsole_clear)                   *<Plug>(vimconsole_clear)*
 
     Same as |VimConsoleClear|.
 
 
-<Plug>(vimconsole_redraw)                        *<Plug>(vimconsole_redraw)*
+<Plug>(vimconsole_redraw)                  *<Plug>(vimconsole_redraw)*
 
     Same as |VimConsoleRedraw|.
+
+
+<Plug>(vimconsole_next_prompt)             *<Plug>(vimconsole_next_prompt)*
+
+    Move to next prompt from cursor.
+
+
+<Plug>(vimconsole_previous_prompt)         *<Plug>(vimconsole_previous_prompt)*
+
+    Move to previous prompt from cursor.
 
 
 ==============================================================================

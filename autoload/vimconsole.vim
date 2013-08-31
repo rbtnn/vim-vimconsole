@@ -1,8 +1,9 @@
+
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:TYPE_PROMPT = 8
-let s:PROMPT_LINE_NUM = 1
 let s:PROMPT_STRING = 'VimConsole>'
+let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
 
 function! s:object(...)
@@ -15,6 +16,14 @@ endfunction
 
 function! s:is_vimconsole_window(bufnr)
   return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
+endfunction
+
+function! s:get_curr_prompt_line_num()
+  if s:is_vimconsole_window(bufnr('%'))
+    return line('.')
+  else
+    return 1
+  endif
 endfunction
 
 function! s:logged_events(context)
@@ -171,7 +180,7 @@ function! vimconsole#at(...)
 endfunction
 
 function! s:get_log()
-  let rtn = [ s:PROMPT_STRING ]
+  let rtn = []
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
   for obj in ( g:vimconsole#desending ? reverse( copy(s:object()) ) : s:object() )
@@ -181,6 +190,7 @@ function! s:get_log()
     let rtn += lines
     let start = obj.last
   endfor
+  let rtn += [ s:PROMPT_STRING ]
   return join(rtn,"\n")
 endfunction
 
@@ -207,47 +217,66 @@ function! vimconsole#foldtext()
 endfunction
 
 function! vimconsole#bufenter()
-  let prompt_line = getline(s:PROMPT_LINE_NUM)
   call vimconsole#redraw()
-  if prompt_line =~# '^' . s:PROMPT_STRING
-    call setline(s:PROMPT_LINE_NUM, prompt_line)
-  else
-    call setline(s:PROMPT_LINE_NUM, s:PROMPT_STRING)
-  endif
-  call cursor(s:PROMPT_LINE_NUM,len(getline(s:PROMPT_LINE_NUM))+1)
+  " move the last prompt line.
+  normal G
 endfunction
 
-function! s:i_key_cr()
-  if line('.') == s:PROMPT_LINE_NUM
-    let line = getline('.')
-    let m = matchlist(line, '^' . s:PROMPT_STRING . '\(.*\)$')
+function! s:key_cr()
+  if line('.') == s:get_curr_prompt_line_num()
+    let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     if ! empty(m)
-      if ! empty(m[1])
-        if g:vimconsole#desending
-          call s:add_log(s:TYPE_PROMPT,s:TYPE_PROMPT,line,[])
-          call vimconsole#log(eval(m[1]))
-        else
-          call vimconsole#log(eval(m[1]))
-          call s:add_log(s:TYPE_PROMPT,s:TYPE_PROMPT,line,[])
-        endif
-        call setline(s:PROMPT_LINE_NUM, s:PROMPT_STRING)
+      let input_str = m[1]
+
+      if ! empty(input_str)
+        try
+          let eval_value = eval(input_str)
+
+          if g:vimconsole#desending
+            call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
+            call vimconsole#log(eval_value)
+          else
+            call vimconsole#log(eval_value)
+            call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
+          endif
+        catch
+          call vimconsole#error(join([ (s:PROMPT_STRING . input_str), v:exception, v:throwpoint ], "\n"))
+        endtry
+
         call vimconsole#bufenter()
       endif
+
     endif
   endif
 endfunction
 
+function! s:key_c_n()
+  call search(s:PROMPT_STRING_PATTERN, 'w')
+endfunction
+
+function! s:key_c_p()
+  call search(s:PROMPT_STRING_PATTERN, 'bw')
+endfunction
+
 function! s:define_key_mappings()
-  inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
-  nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>i_key_cr()<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
+
+  inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+  nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+
+  nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
+  nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
 endfunction
 
 function! s:define_highlight_syntax()
   " containedin=ALL
   execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
+  "                                                         ^-- Is not s:PROMPT_STRING_PATTERN !
+
   syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
   " normal
   syn match   vimconsolePromptInputString   '^\%1l.*$'
@@ -313,10 +342,10 @@ function! vimconsole#winopen(...)
     let b:vimconsole = 1
     setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
     execute 'setlocal filetype=' . s:FILETYPE
-    augroup vimconsole
-      autocmd!
-      autocmd InsertEnter <buffer> call vimconsole#bufenter()
-    augroup END
+    " augroup vimconsole
+    "   autocmd!
+    "   autocmd InsertEnter <buffer> call vimconsole#bufenter()
+    " augroup END
     if g:vimconsole#plain_mode
       setlocal foldmethod=manual
     else
