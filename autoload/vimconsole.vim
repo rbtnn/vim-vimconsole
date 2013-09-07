@@ -6,75 +6,66 @@ let s:PROMPT_STRING = 'VimConsole>'
 let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
 
-function! s:object(...)
+function! s:object(...) " {{{
   if 0 < a:0
     let n = g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1
     let t:objs = (get(t:,'objs',[]) + [ a:1 ])[:(n)]
   endif
   return get(t:,'objs',[])
-endfunction
-
-function! s:is_vimconsole_window(bufnr)
+endfunction " }}}
+function! s:is_vimconsole_window(bufnr) " {{{
   return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
-endfunction
-
-function! s:get_curr_prompt_line_num()
+endfunction " }}}
+function! s:get_curr_prompt_line_num() " {{{
   if s:is_vimconsole_window(bufnr('%'))
     return line('.')
   else
     return 1
   endif
-endfunction
-
-function! s:logged_events(context)
+endfunction " }}}
+function! s:logged_events(context) " {{{
   if has_key(g:vimconsole#hooks,'on_logged')
     call g:vimconsole#hooks.on_logged(a:context)
   endif
   if g:vimconsole#auto_redraw
     call vimconsole#redraw()
   endif
-endfunction
+endfunction " }}}
 
-function! s:add_log(true_type,false_type,value,list)
+function! s:add_log(true_type,false_type,value,list) " {{{
   if 0 < len(a:list)
     call s:object({ 'type' : a:true_type, 'value' : call('printf',[(a:value)]+a:list) })
   else
     call s:object({ 'type' : a:false_type, 'value' : deepcopy(a:value) })
   endif
-endfunction
+endfunction " }}}
 
-function! vimconsole#dump(path)
+function! vimconsole#dump(path) " {{{
   silent! call writefile(split(s:get_log(),"\n"),a:path)
-endfunction
-
-function! vimconsole#clear()
+endfunction " }}}
+function! vimconsole#clear() " {{{
   let t:objs = []
   call s:logged_events({ 'tag' : 'vimconsole#clear' })
-endfunction
-
-function! vimconsole#assert(expr,obj,...)
+endfunction " }}}
+function! vimconsole#assert(expr,obj,...) " {{{
   if a:expr
     call s:add_log(type(""),type(a:obj),a:obj,a:000)
   endif
   call s:logged_events({ 'tag' : 'vimconsole#assert' })
-endfunction
-
-function! vimconsole#log(obj,...)
+endfunction " }}}
+function! vimconsole#log(obj,...) " {{{
   call s:add_log(type(""),type(a:obj),a:obj,a:000)
   call s:logged_events({ 'tag' : 'vimconsole#log' })
-endfunction
-
-function! vimconsole#warn(obj,...)
+endfunction " }}}
+function! vimconsole#warn(obj,...) " {{{
   call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
   call s:logged_events({ 'tag' : 'vimconsole#warn' })
-endfunction
-
-function! vimconsole#error(obj,...)
+endfunction " }}}
+function! vimconsole#error(obj,...) " {{{
   call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
   call s:logged_events({ 'tag' : 'vimconsole#error' })
-endfunction
-
-function! vimconsole#wintoggle()
+endfunction " }}}
+function! vimconsole#wintoggle() " {{{
   let close_flag = 0
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
@@ -87,9 +78,8 @@ function! vimconsole#wintoggle()
   if ! close_flag
     call vimconsole#winopen()
   endif
-endfunction
-
-function! vimconsole#is_open()
+endfunction " }}}
+function! vimconsole#is_open() " {{{
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
     if s:is_vimconsole_window(bufnr)
@@ -97,9 +87,8 @@ function! vimconsole#is_open()
     endif
   endfor
   return 0
-endfunction
-
-function! vimconsole#winclose()
+endfunction " }}}
+function! vimconsole#winclose() " {{{
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
     if s:is_vimconsole_window(bufnr)
@@ -107,9 +96,9 @@ function! vimconsole#winclose()
       close
     endif
   endfor
-endfunction
+endfunction " }}}
 
-function! s:object2lines(obj)
+function! s:object2lines(obj) " {{{
   let lines = []
   if type(function('tr')) == a:obj.type
     redir => hoge
@@ -165,9 +154,8 @@ function! s:object2lines(obj)
   else
     return [printf('%2s-%s', a:obj.type, get(lines,0,''))] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
   endif
-endfunction
-
-function! vimconsole#at(...)
+endfunction " }}}
+function! vimconsole#at(...) " {{{
   let line_num = 0 < a:0 ? a:1 : line(".")
   if type(line_num) == type(0)
     for obj in s:object()
@@ -177,9 +165,8 @@ function! vimconsole#at(...)
     endfor
   endif
   return {}
-endfunction
-
-function! s:get_log()
+endfunction " }}}
+function! s:get_log() " {{{
   let rtn = []
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
@@ -192,9 +179,9 @@ function! s:get_log()
   endfor
   let rtn += [ s:PROMPT_STRING ]
   return join(rtn,"\n")
-endfunction
+endfunction " }}}
 
-function! vimconsole#redraw(...)
+function! vimconsole#redraw(...) " {{{
   let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
   let curr_winnr = winnr()
   for winnr in range(1,winnr('$'))
@@ -210,19 +197,17 @@ function! vimconsole#redraw(...)
     endif
   endfor
   execute curr_winnr . "wincmd w"
-endfunction
-
-function! vimconsole#foldtext()
+endfunction " }}}
+function! vimconsole#foldtext() " {{{
   return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
-endfunction
-
-function! vimconsole#bufenter()
+endfunction " }}}
+function! vimconsole#bufenter() " {{{
   call vimconsole#redraw()
   " move the last prompt line.
   normal G
-endfunction
+endfunction " }}}
 
-function! s:key_cr()
+function! s:key_cr() " {{{
   if line('.') == s:get_curr_prompt_line_num()
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     if ! empty(m)
@@ -231,7 +216,8 @@ function! s:key_cr()
       if ! empty(input_str)
         call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
         try
-          call vimconsole#log(eval(input_str))
+          let F = function(g:vimconsole#eval_function_name)
+          call vimconsole#log(F(input_str))
         catch
           call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
         endtry
@@ -241,17 +227,15 @@ function! s:key_cr()
 
     endif
   endif
-endfunction
+endfunction " }}}
 
-function! s:key_c_n()
+function! s:key_c_n() " {{{
   call search(s:PROMPT_STRING_PATTERN, 'w')
-endfunction
-
-function! s:key_c_p()
+endfunction " }}}
+function! s:key_c_p() " {{{
   call search(s:PROMPT_STRING_PATTERN, 'bw')
-endfunction
-
-function! s:define_key_mappings()
+endfunction " }}}
+function! s:define_key_mappings() " {{{
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
@@ -263,9 +247,8 @@ function! s:define_key_mappings()
 
   nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
   nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
-endfunction
-
-function! s:define_highlight_syntax()
+endfunction " }}}
+function! s:define_highlight_syntax() " {{{
   " containedin=ALL
   execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
   "                                                         ^-- Is not s:PROMPT_STRING_PATTERN !
@@ -301,9 +284,9 @@ function! s:define_highlight_syntax()
     hi! def link vimconsoleError      Error
     hi! def link vimconsoleWarning    WarningMsg
   endif
-endfunction
+endfunction " }}}
 
-function! vimconsole#winopen(...)
+function! vimconsole#winopen(...) " {{{
   let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
   let curr_winnr = winnr()
   if vimconsole#is_open()
@@ -351,5 +334,6 @@ function! vimconsole#winopen(...)
     let &splitbelow = tmp
   endtry
   execute curr_winnr . "wincmd w"
-endfunction
+endfunction " }}}
 
+"  vim: set ts=2 sts=2 sw=2 ft=vim fdm=marker ff=unix :

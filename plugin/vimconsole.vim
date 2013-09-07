@@ -12,6 +12,8 @@ set cpo&vim
 let g:vimconsole#height = get(g:,'vimconsole#height',6)
 let g:vimconsole#width = get(g:,'vimconsole#width', 40)
 
+let g:vimconsole#eval_function_name = get(g:,'vimconsole#eval_function_name','eval')
+
 let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
 let g:vimconsole#hooks = get(g:,'vimconsole#hooks',{})
 let g:vimconsole#maximum_caching_objects_count = get(g:,'vimconsole#maximum_caching_objects_count', 20)
