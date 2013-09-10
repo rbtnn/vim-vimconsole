@@ -41,14 +41,11 @@ This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
 ==============================================================================
 VARIABLES                                               *vimconsole-variables*
 
-* g:vimconsole#desending                   *vimconsole-g:vimconsole#desending* 
-
-    Reverse VimConsole's logs. default: 0
-
 
 * g:vimconsole#split_rule                 *vimconsole-g:vimconsole#split_rule* 
 
-    Split position rule. This can have one of following values. default: 'bottom'
+    Split position rule. This can have one of following values.
+    default: 'bottom'
 
     'top', 'bottom', 'right', 'left'
 
@@ -85,6 +82,7 @@ VARIABLES                                               *vimconsole-variables*
 
     See |VimConsoleDump|.
 
+
 * g:vimconsole#enable_quoted_string
                                 *vimconsole-g:vimconsole#enable_quoted_string* 
 
@@ -115,6 +113,14 @@ VARIABLES                                               *vimconsole-variables*
     It is used for evaluate a character string from prompt.
     default: 'eval'
 
+            Example:
+>
+            " Use like a shell.
+            let g:vimconsole#eval_function_name = function('vimproc#system')
+
+            " VimConsole>ls
+            " README.md autoload doc plugin vimconsole.png
+<
 
 ==============================================================================
 COMMANDS                      *vimconsole-commands*

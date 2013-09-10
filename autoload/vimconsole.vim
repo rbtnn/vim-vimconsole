@@ -8,8 +8,12 @@ let s:FILETYPE = 'vimconsole'
 
 function! s:object(...) " {{{
   if 0 < a:0
-    let n = g:vimconsole#maximum_caching_objects_count <= 0 ? 0 : g:vimconsole#maximum_caching_objects_count - 1
-    let t:objs = (get(t:,'objs',[]) + [ a:1 ])[:(n)]
+    let t:objs = get(t:,'objs',[]) + [ a:1 ]
+    let objs_len = len(t:objs)
+    let n = g:vimconsole#maximum_caching_objects_count
+    let n = n <= 0 ? 0 : n
+    let n = objs_len < n ? objs_len : n
+    let t:objs = t:objs[(objs_len - n):]
   endif
   return get(t:,'objs',[])
 endfunction " }}}
