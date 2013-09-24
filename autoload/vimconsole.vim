@@ -104,7 +104,9 @@ endfunction " }}}
 
 function! s:object2lines(obj) " {{{
   let lines = []
+
   if type(function('tr')) == a:obj.type
+" {{{
     redir => hoge
     try
       execute 'function ' . matchstr(string(a:obj.value),"function('\\zs.*\\ze')")
@@ -113,7 +115,9 @@ function! s:object2lines(obj) " {{{
     endtry
     redir END
     let lines += split(hoge,"\n")
+" }}}
   elseif type({}) == a:obj.type
+" {{{
     if exists('*PrettyPrint')
       let lines += split(PrettyPrint(a:obj.value),"\n")
     else
@@ -123,7 +127,9 @@ function! s:object2lines(obj) " {{{
       endfor
       let lines += [ '}' ]
     endif
+" }}}
   elseif type([]) == a:obj.type
+" {{{
     if exists('*PrettyPrint')
       let lines += split(PrettyPrint(a:obj.value),"\n")
     else
@@ -134,25 +140,41 @@ function! s:object2lines(obj) " {{{
       endfor
       let lines += [ ']' ]
     endif
+" }}}
+  elseif type(0.0) == a:obj.type
+" {{{
+    let lines += [ string(a:obj.value) ]
+" }}}
   elseif type(0) == a:obj.type
-    let lines += [ a:obj.value ]
+" {{{
+    let lines += [ string(a:obj.value) ]
+" }}}
   elseif s:TYPE_ERROR == a:obj.type || s:TYPE_WARN == a:obj.type
+" {{{
     if empty(a:obj.value)
       let lines += [""]
     else
       let lines += split(a:obj.value,"\n")
     endif
+" }}}
   elseif s:TYPE_PROMPT == a:obj.type
+" {{{
     let lines += [ a:obj.value ]
+" }}}
   elseif type('') == a:obj.type
+" {{{
     if g:vimconsole#enable_quoted_string
       let lines += map(split(a:obj.value,"\n"),'string(v:val)')
     else
       let lines += split(a:obj.value,"\n")
     endif
+" }}}
   else
+" {{{
     let lines += map(split(a:obj.value,"\n"),'string(v:val)')
+" }}}
   endif
+
   if g:vimconsole#plain_mode
     return lines
   else
@@ -234,10 +256,14 @@ function! s:key_cr() " {{{
 endfunction " }}}
 
 function! s:key_c_n() " {{{
+  normal 0
   call search(s:PROMPT_STRING_PATTERN, 'w')
+  normal 0f>
 endfunction " }}}
 function! s:key_c_p() " {{{
+  normal 0
   call search(s:PROMPT_STRING_PATTERN, 'bw')
+  normal 0f>
 endfunction " }}}
 function! s:define_key_mappings() " {{{
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
