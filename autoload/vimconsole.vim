@@ -265,55 +265,79 @@ function! s:key_c_p() " {{{
   call search(s:PROMPT_STRING_PATTERN, 'bw')
   normal 0f>
 endfunction " }}}
-function! s:define_key_mappings() " {{{
+
+function! vimconsole#define_plug_keymappings() " {{{
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
-
+endfunction " }}}
+function! vimconsole#define_default_keymappings() " {{{
   inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
   nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
-
-  nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
-  nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
-endfunction " }}}
-function! s:define_highlight_syntax() " {{{
-  " containedin=ALL
-  execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
-  "                                                         ^-- Is not s:PROMPT_STRING_PATTERN !
-
-  syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
-  " normal
-  syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
-  syn match   vimconsoleString      /^ 1\(-\||\).*$/
-  syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
-  syn match   vimconsoleList        /^ 3\(-\||\).*$/
-  syn match   vimconsoleDictionary  /^ 4\(-\||\).*$/
-  syn match   vimconsoleFloat       /^ 5\(-\||\).*$/
-  syn match   vimconsoleError       /^ 6\(-\||\).*$/
-  syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
-  syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
-
-  hi! def link vimconsolePromptString          SpecialKey
-  hi! def link vimconsoleNumber     Normal
-  hi! def link vimconsoleString     Normal
-  hi! def link vimconsoleFuncref    Normal
-  hi! def link vimconsoleList       Normal
-  hi! def link vimconsoleDictionary Normal
-  hi! def link vimconsoleFloat      Normal
-  hi! def link vimconsoleFloat      Normal
-  hi! def link vimconsolePrompt     Title
-  "
-  if g:vimconsole#plain_mode
-    hi! def link vimconsoleHidden     Normal
-    hi! def link vimconsoleError      Normal
-    hi! def link vimconsoleWarning    Normal
-  else
-    hi! def link vimconsoleHidden     Ignore
-    hi! def link vimconsoleError      Error
-    hi! def link vimconsoleWarning    WarningMsg
+  if ! g:vimconsole#no_default_key_mappings
+    nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
+    nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
   endif
+endfunction " }}}
+function! vimconsole#define_syntax() " {{{
+  let curr_winnr = winnr()
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      execute winnr . "wincmd w"
+
+      " containedin=ALL
+      execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
+      "                                                         ^-- Is not s:PROMPT_STRING_PATTERN !
+
+      syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
+      " normal
+      syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
+      syn match   vimconsoleString      /^ 1\(-\||\).*$/
+      syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
+      syn match   vimconsoleList        /^ 3\(-\||\).*$/
+      syn match   vimconsoleDictionary  /^ 4\(-\||\).*$/
+      syn match   vimconsoleFloat       /^ 5\(-\||\).*$/
+      syn match   vimconsoleError       /^ 6\(-\||\).*$/
+      syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
+      syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
+
+    endif
+  endfor
+  execute curr_winnr . "wincmd w"
+endfunction " }}}
+function! vimconsole#define_highlight() " {{{
+  let curr_winnr = winnr()
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      execute winnr . "wincmd w"
+
+      hi! def link vimconsolePromptString          SpecialKey
+      hi! def link vimconsoleNumber     Normal
+      hi! def link vimconsoleString     Normal
+      hi! def link vimconsoleFuncref    Normal
+      hi! def link vimconsoleList       Normal
+      hi! def link vimconsoleDictionary Normal
+      hi! def link vimconsoleFloat      Normal
+      hi! def link vimconsoleFloat      Normal
+      hi! def link vimconsolePrompt     Title
+      "
+      if g:vimconsole#plain_mode
+        hi! def link vimconsoleHidden     Normal
+        hi! def link vimconsoleError      Normal
+        hi! def link vimconsoleWarning    Normal
+      else
+        hi! def link vimconsoleHidden     Ignore
+        hi! def link vimconsoleError      Error
+        hi! def link vimconsoleWarning    WarningMsg
+      endif
+
+    endif
+  endfor
+  execute curr_winnr . "wincmd w"
 endfunction " }}}
 
 function! vimconsole#winopen(...) " {{{
@@ -355,8 +379,11 @@ function! vimconsole#winopen(...) " {{{
       setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
     endif
 
-    call s:define_key_mappings()
-    call s:define_highlight_syntax()
+    call vimconsole#define_plug_keymappings()
+    call vimconsole#define_default_keymappings()
+    call vimconsole#define_syntax()
+    call vimconsole#define_highlight()
+
     call vimconsole#redraw()
 
     normal zm
