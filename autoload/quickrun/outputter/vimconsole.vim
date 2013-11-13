@@ -6,9 +6,9 @@ let s:outputter = {
 \   'config': {
 \     'height': g:vimconsole#height,
 \     'width': g:vimconsole#width,
-\     'split_rule': 'top',
+\     'split_rule': g:vimconsole#split_rule,
 \     'enable_quoted_string': g:vimconsole#enable_quoted_string,
-\     'maximum_caching_objects_count': 99999,
+\     'maximum_caching_objects_count': g:vimconsole#maximum_caching_objects_count,
 \   }
 \ }
 
