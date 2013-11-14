@@ -6,16 +6,27 @@ let s:PROMPT_STRING = 'VimConsole>'
 let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
 
+let s:HOOK_TYPE_VALUES = {
+      \ 'none' : 0,
+      \ 'on_logged' : 1,
+      \ 'on_redrawn' : 2,
+      \ }
+
+function! s:session() " {{{
+  let t:vimconsole = get(t:,'vimconsole',{})
+  return t:vimconsole
+endfunction " }}}
 function! s:object(...) " {{{
+  let tab_session = s:session()
   if 0 < a:0
-    let t:objs = get(t:,'objs',[]) + [ a:1 ]
-    let objs_len = len(t:objs)
+    let tab_session.objs = get(tab_session,'objs',[]) + [ a:1 ]
+    let objs_len = len(tab_session.objs)
     let n = g:vimconsole#maximum_caching_objects_count
     let n = n <= 0 ? 0 : n
     let n = objs_len < n ? objs_len : n
-    let t:objs = t:objs[(objs_len - n):]
+    let tab_session.objs = tab_session.objs[(objs_len - n):]
   endif
-  return get(t:,'objs',[])
+  return get(tab_session,'objs',[])
 endfunction " }}}
 function! s:is_vimconsole_window(bufnr) " {{{
   return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
@@ -27,12 +38,23 @@ function! s:get_curr_prompt_line_num() " {{{
     return 1
   endif
 endfunction " }}}
-function! s:logged_events(context) " {{{
-  if has_key(g:vimconsole#hooks,'on_logged')
-    call g:vimconsole#hooks.on_logged(a:context)
-  endif
-  if g:vimconsole#auto_redraw
-    call vimconsole#redraw()
+
+function! s:hook_events(hook_type,context) " {{{
+  let tab_session = s:session()
+  let curr_hook_type = get(tab_session,'curr_hook_type',s:HOOK_TYPE_VALUES['none'])
+
+  if curr_hook_type < s:HOOK_TYPE_VALUES[(a:hook_type)]
+    let tab_session.curr_hook_type = s:HOOK_TYPE_VALUES[(a:hook_type)]
+    try
+      if has_key(g:vimconsole#hooks,a:hook_type)
+        call g:vimconsole#hooks[(a:hook_type)](a:context)
+      endif
+      if g:vimconsole#auto_redraw
+        call vimconsole#redraw()
+      endif
+    finally
+      let tab_session.curr_hook_type = curr_hook_type
+    endtry
   endif
 endfunction " }}}
 
@@ -48,26 +70,27 @@ function! vimconsole#dump(path) " {{{
   silent! call writefile(split(s:get_log(),"\n"),a:path)
 endfunction " }}}
 function! vimconsole#clear() " {{{
-  let t:objs = []
-  call s:logged_events({ 'tag' : 'vimconsole#clear' })
+  let tab_session = s:session()
+  let tab_session.objs = []
+  call vimconsole#redraw()
 endfunction " }}}
 function! vimconsole#assert(expr,obj,...) " {{{
   if a:expr
     call s:add_log(type(""),type(a:obj),a:obj,a:000)
   endif
-  call s:logged_events({ 'tag' : 'vimconsole#assert' })
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#assert' })
 endfunction " }}}
 function! vimconsole#log(obj,...) " {{{
   call s:add_log(type(""),type(a:obj),a:obj,a:000)
-  call s:logged_events({ 'tag' : 'vimconsole#log' })
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#log' })
 endfunction " }}}
 function! vimconsole#warn(obj,...) " {{{
   call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
-  call s:logged_events({ 'tag' : 'vimconsole#warn' })
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#warn' })
 endfunction " }}}
 function! vimconsole#error(obj,...) " {{{
   call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
-  call s:logged_events({ 'tag' : 'vimconsole#error' })
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#error' })
 endfunction " }}}
 function! vimconsole#wintoggle() " {{{
   let close_flag = 0
@@ -106,7 +129,7 @@ function! s:object2lines(obj) " {{{
   let lines = []
 
   if type(function('tr')) == a:obj.type
-" {{{
+    " {{{
     redir => hoge
     try
       execute 'function ' . matchstr(string(a:obj.value),"function('\\zs.*\\ze')")
@@ -115,9 +138,9 @@ function! s:object2lines(obj) " {{{
     endtry
     redir END
     let lines += split(hoge,"\n")
-" }}}
+    " }}}
   elseif type({}) == a:obj.type
-" {{{
+    " {{{
     if exists('*PrettyPrint')
       let lines += split(PrettyPrint(a:obj.value),"\n")
     else
@@ -127,9 +150,9 @@ function! s:object2lines(obj) " {{{
       endfor
       let lines += [ '}' ]
     endif
-" }}}
+    " }}}
   elseif type([]) == a:obj.type
-" {{{
+    " {{{
     if exists('*PrettyPrint')
       let lines += split(PrettyPrint(a:obj.value),"\n")
     else
@@ -140,39 +163,39 @@ function! s:object2lines(obj) " {{{
       endfor
       let lines += [ ']' ]
     endif
-" }}}
+    " }}}
   elseif type(0.0) == a:obj.type
-" {{{
+    " {{{
     let lines += [ string(a:obj.value) ]
-" }}}
+    " }}}
   elseif type(0) == a:obj.type
-" {{{
+    " {{{
     let lines += [ string(a:obj.value) ]
-" }}}
+    " }}}
   elseif s:TYPE_ERROR == a:obj.type || s:TYPE_WARN == a:obj.type
-" {{{
+    " {{{
     if empty(a:obj.value)
       let lines += [""]
     else
       let lines += split(a:obj.value,"\n")
     endif
-" }}}
+    " }}}
   elseif s:TYPE_PROMPT == a:obj.type
-" {{{
+    " {{{
     let lines += [ a:obj.value ]
-" }}}
+    " }}}
   elseif type('') == a:obj.type
-" {{{
+    " {{{
     if g:vimconsole#enable_quoted_string
       let lines += map(split(a:obj.value,"\n"),'string(v:val)')
     else
       let lines += split(a:obj.value,"\n")
     endif
-" }}}
+    " }}}
   else
-" {{{
+    " {{{
     let lines += map(split(a:obj.value,"\n"),'string(v:val)')
-" }}}
+    " }}}
   endif
 
   if g:vimconsole#plain_mode
@@ -217,6 +240,9 @@ function! vimconsole#redraw(...) " {{{
         call vimconsole#clear()
       endif
       execute winnr . "wincmd w"
+
+      call s:hook_events('on_redrawn',{ 'tag' : 'vimconsole#redraw' })
+
       silent % delete _
       silent put=s:get_log()
       silent 1 delete _
