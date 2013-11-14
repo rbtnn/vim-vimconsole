@@ -408,8 +408,6 @@ function! vimconsole#winopen(...) " {{{
     call vimconsole#define_highlight()
 
     call vimconsole#redraw()
-
-    normal zm
   finally
     let &splitbelow = tmp
   endtry
