@@ -91,11 +91,10 @@ VARIABLES                                               *vimconsole-variables*
 * g:vimconsole#hooks                                      *g:vimconsole#looks* 
 
     This value is `{}`. This can have following keys.
-    A hook function has a hook_level.
-    Calling a hook function, does not call any hook function that has a lower
-    hook_level, 
+    Calling a hook function, does not call any hook function.
 
-        on_logged: This is a function reference. (hook_level: 1)
+
+        on_logged: This is a function reference.
             If g:vimconsole#hooks has this key, call this after logging by
             a logging function (vimconsole#log, vimconsole#warn,... ,etc.).
 
@@ -107,13 +106,25 @@ VARIABLES                                               *vimconsole-variables*
             endfunction
 <
 
-        on_redrawn: This is a function reference. (hook_level: 2)
+        on_pre_redraw: This is a function reference.
             If g:vimconsole#hooks has this key,
-            call this after calling vimconsole#redraw().
+            call this before redrawing VimConsole.
 
             Example:
 >
-            function! g:vimconsole#hooks.on_redrawn(context)
+            function! g:vimconsole#hooks.on_pre_redraw(context)
+              " `a:context`'s value is such as `{ 'tag' : 'vimconsole#redraw' }`.
+              call vimconsole#log(a:context.tag)
+            endfunction
+<
+
+        on_post_redraw: This is a function reference.
+            If g:vimconsole#hooks has this key,
+            call this after redrawing VimConsole.
+
+            Example:
+>
+            function! g:vimconsole#hooks.on_post_redraw(context)
               " `a:context`'s value is such as `{ 'tag' : 'vimconsole#redraw' }`.
               call vimconsole#log(a:context.tag)
             endfunction

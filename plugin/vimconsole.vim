@@ -27,7 +27,6 @@ command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
 command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
 command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
 command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
-command! -nargs=0 -bar VimConsoleTest   :call vimconsole#test()
 command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
 command! -nargs=0 -bar VimConsoleDump   :call vimconsole#dump(g:vimconsole#dump_path)
 

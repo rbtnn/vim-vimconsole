@@ -6,12 +6,6 @@ let s:PROMPT_STRING = 'VimConsole>'
 let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
 
-let s:HOOK_TYPE_VALUES = {
-      \ 'none' : 0,
-      \ 'on_logged' : 1,
-      \ 'on_redrawn' : 2,
-      \ }
-
 function! s:session() " {{{
   let t:vimconsole = get(t:,'vimconsole',{})
   return t:vimconsole
@@ -41,21 +35,21 @@ endfunction " }}}
 
 function! s:hook_events(hook_type,context) " {{{
   let tab_session = s:session()
-  let curr_hook_type = get(tab_session,'curr_hook_type',s:HOOK_TYPE_VALUES['none'])
-
-  if curr_hook_type < s:HOOK_TYPE_VALUES[(a:hook_type)]
-    let tab_session.curr_hook_type = s:HOOK_TYPE_VALUES[(a:hook_type)]
-    try
+  try
+    if ! get(tab_session,'is_hooking',0)
+      let tab_session.is_hooking = 1
       if has_key(g:vimconsole#hooks,a:hook_type)
         call g:vimconsole#hooks[(a:hook_type)](a:context)
       endif
-      if g:vimconsole#auto_redraw
-        call vimconsole#redraw()
+      if -1 != index(['on_logged'],a:hook_type)
+        if g:vimconsole#auto_redraw
+          call vimconsole#redraw()
+        endif
       endif
-    finally
-      let tab_session.curr_hook_type = curr_hook_type
-    endtry
-  endif
+    endif
+  finally
+    let tab_session.is_hooking = 0
+  endtry
 endfunction " }}}
 
 function! s:add_log(true_type,false_type,value,list) " {{{
@@ -74,6 +68,7 @@ function! vimconsole#clear() " {{{
   let tab_session.objs = []
   call vimconsole#redraw()
 endfunction " }}}
+
 function! vimconsole#assert(expr,obj,...) " {{{
   if a:expr
     call s:add_log(type(""),type(a:obj),a:obj,a:000)
@@ -241,11 +236,13 @@ function! vimconsole#redraw(...) " {{{
       endif
       execute winnr . "wincmd w"
 
-      call s:hook_events('on_redrawn',{ 'tag' : 'vimconsole#redraw' })
+      call s:hook_events('on_pre_redraw',{ 'tag' : 'vimconsole#redraw' })
 
       silent % delete _
       silent put=s:get_log()
       silent 1 delete _
+
+      call s:hook_events('on_post_redraw',{ 'tag' : 'vimconsole#redraw' })
     endif
   endfor
   execute curr_winnr . "wincmd w"
