@@ -1,8 +1,13 @@
 
 # vimconsole.vim
 
-This is immediate-window for Vim script.  
+This is Immediate Window for Vim script.  
 It is like Google Chrome Developer Console.  
 
 ![](https://raw.github.com/rbtnn/vimconsole.vim/master/vimconsole.png)
+
+# LICENSE
+
+Distributed under MIT License. See `doc/vimconsole.txt`
+
 

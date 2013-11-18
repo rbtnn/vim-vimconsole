@@ -27,11 +27,12 @@ Variables		|vimconsole-variables|
 Commands                |vimconsole-commands|
 Functions               |vimconsole-functions|
 Key Mappings            |vimconsole-key-mappings|
+FAQ                     |vimconsole-faq|
 
 
 ==============================================================================
 
-This is immediate-window for Vim script.  
+This is Immediate Window for Vim script.  
 It is like Google Chrome Developer Console.  
 
 This use |PrettyPrint()| if install https://github.com/thinca/vim-prettyprint.
@@ -84,7 +85,7 @@ VARIABLES                                               *vimconsole-variables*
 
 * g:vimconsole#enable_quoted_string        *g:vimconsole#enable_quoted_string* 
 
-    Print a string with single-quote, if its type is `type('')`.
+    Print a string with single-quote, if its type is string.
     default: 1
 
 
@@ -180,7 +181,7 @@ COMMANDS                                                 *vimconsole-commands*
 
 * :VimConsoleOpen[!]                                          *VimConsoleOpen*
 
-    Open VimConsole when VimConsole is closed.
+    Open VimConsole if it is closed.
     Do nothing when VimConsole is opened (don't call vimconsole#redraw).
     If with bang, force call vimconsole#redraw.  
 
@@ -208,7 +209,7 @@ COMMANDS                                                 *vimconsole-commands*
 
 * :VimConsoleDump                                             *VimConsoleDump*
 
-    Dump VimConsole's logs to |g:vimxonsole#dump_path|.
+    Dump VimConsole's logs to |g:vimconsole#dump_path|.
 
 
 ==============================================================================
@@ -273,8 +274,8 @@ FUNCTIONS                                               *vimconsole-functions*
 
 * vimconsole#is_open()                                  *vimconsole#is_open()*
 
-    1 is returned when VimConsole is opened. 
-    0 is returned when VimConsole is closed. 
+    1 is returned if VimConsole is opened. 
+    0 is returned if VimConsole is closed. 
 
  
 * vimconsole#dump(path)                                *vimconsole#dump(path)*
@@ -296,13 +297,11 @@ FUNCTIONS                                               *vimconsole-functions*
 * vimconsole#define_syntax()                      *vimconsole#define_syntax()*
 
     Define syntaxes of VimConsole.
-    This will be used for reloadable of .vimrc.
 
 
 * vimconsole#define_highlight()                *vimconsole#define_highlight()*
 
     Define highlights of VimConsole.
-    This will be used for reloadable of .vimrc.
 
 
 ------------------------------------------------------------------------------
@@ -331,6 +330,29 @@ KEY MAPPINGS                                         *vimconsole-key-mappings*
 <Plug>(vimconsole_previous_prompt)        *<Plug>(vimconsole_previous_prompt)*
 
     Move to previous prompt from cursor.
+
+
+==============================================================================
+FAQ						              *vimconsole-faq*
+
+Q: I want to fix highlight and syntax when reload `.vimrc`.
+
+A: You can use below setting in `.vimrc`.
+>
+    if vimconsole#is_open()
+      call vimconsole#winopen('!')
+    endif
+<
+
+Q: I want to scroll until the end of logs automatically.
+
+A: You can use below setting in `.vimrc`.
+>
+    let g:vimconsole#hooks = {}
+    function! g:vimconsole#hooks.on_post_redraw(context)
+      normal G
+    endfunction
+<
 
 
 ==============================================================================
