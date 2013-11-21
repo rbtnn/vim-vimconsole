@@ -23,7 +23,7 @@ License: MIT license  {{{
 
 CONTENTS					         *vimconsole-contents*
 
-Variables		|vimconsole-variables|
+Variables               |vimconsole-variables|
 Commands                |vimconsole-commands|
 Functions               |vimconsole-functions|
 Key Mappings            |vimconsole-key-mappings|
@@ -150,6 +150,33 @@ VARIABLES                                               *vimconsole-variables*
 * g:vimconsole#no_default_key_mappings  *g:vimconsole#no_default_key_mappings* 
 
     Does not set default key mappings.  
+
+
+------------------------------------------------------------------------------
+
+* t:vimconsole.message_queue                      *t:vimconsole.message_queue* 
+
+    Add logs to VimConsole silently.
+    You can use this, ever if your environment is `filetype-off`.
+    So these are not occurred errors, ever if you do not install VimConsole.
+    default: undefined
+
+            Example:
+>
+            " First using setting.
+            let t:vimconsole = get(t:,'vimconsole',{})
+            let t:vimconsole.message_queue =
+                \ get(t:vimconsole,'message_queue',[])
+
+
+            " Append something.
+            let t:vimconsole.message_queue += [ 3, 4, 5 ]
+
+            ...
+
+            " You can add some type values.
+            let t:vimconsole.message_queue += [ {}, "hoge" ]
+<
 
 
 ==============================================================================

@@ -12,6 +12,15 @@ function! s:session() " {{{
 endfunction " }}}
 function! s:object(...) " {{{
   let tab_session = s:session()
+
+  let message_queue = deepcopy(get(tab_session,'message_queue',[]))
+  if !empty(message_queue)
+    let tab_session.message_queue = []
+    for x in message_queue
+      call s:add_log(type(""),type(x),x,[])
+    endfor
+  endif
+
   if 0 < a:0
     let tab_session.objs = get(tab_session,'objs',[]) + [ a:1 ]
     let objs_len = len(tab_session.objs)
