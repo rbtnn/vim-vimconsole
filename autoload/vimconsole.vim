@@ -145,28 +145,28 @@ function! s:object2lines(obj) " {{{
     " }}}
   elseif type({}) == a:obj.type
     " {{{
-    if exists('*PrettyPrint')
+    try
       let lines += split(PrettyPrint(a:obj.value),"\n")
-    else
+    catch
       let lines +=  [ '{' ]
       for key in keys(a:obj.value)
         let lines += [ '  ' . printf("'%s' : %s", key, string(a:obj.value[key])) . ',' ]
       endfor
       let lines += [ '}' ]
-    endif
+    endtry
     " }}}
   elseif type([]) == a:obj.type
     " {{{
-    if exists('*PrettyPrint')
+    try
       let lines += split(PrettyPrint(a:obj.value),"\n")
-    else
+    catch
       let lines +=  [ '[' ]
       for e in a:obj.value
         let lines += [ '  ' . string(e) . ',' ]
         unlet e
       endfor
       let lines += [ ']' ]
-    endif
+    endtry
     " }}}
   elseif type(0.0) == a:obj.type
     " {{{
