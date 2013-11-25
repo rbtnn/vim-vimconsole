@@ -1,7 +1,9 @@
 
+let s:TYPE_STRING = type('')
 let s:TYPE_ERROR = 6
 let s:TYPE_WARN = 7
 let s:TYPE_PROMPT = 8
+
 let s:PROMPT_STRING = 'VimConsole>'
 let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
@@ -17,7 +19,7 @@ function! s:object(...) " {{{
   if !empty(message_queue)
     let tab_session.message_queue = []
     for x in message_queue
-      call s:add_log(type(""),type(x),x,[])
+      call s:add_log(s:TYPE_STRING,type(x),x,[])
     endfor
   endif
 
@@ -80,12 +82,12 @@ endfunction " }}}
 
 function! vimconsole#assert(expr,obj,...) " {{{
   if a:expr
-    call s:add_log(type(""),type(a:obj),a:obj,a:000)
+    call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
   endif
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#assert' })
 endfunction " }}}
 function! vimconsole#log(obj,...) " {{{
-  call s:add_log(type(""),type(a:obj),a:obj,a:000)
+  call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#log' })
 endfunction " }}}
 function! vimconsole#warn(obj,...) " {{{
