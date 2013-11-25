@@ -273,12 +273,25 @@ function! s:key_cr() " {{{
 
       if ! empty(input_str)
         call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
+
+        for winnr in range(1,winnr('$'))
+          if winbufnr(winnr) == bufnr('#')
+            execute winnr . "wincmd w"
+          endif
+        endfor
+
         try
           let F = function(g:vimconsole#eval_function_name)
           call vimconsole#log(F(input_str))
         catch
           call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
         endtry
+
+        for winnr in range(1,winnr('$'))
+          if s:is_vimconsole_window(winbufnr(winnr))
+            execute winnr . "wincmd w"
+          endif
+        endfor
 
         call vimconsole#bufenter()
       endif
