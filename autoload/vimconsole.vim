@@ -362,25 +362,35 @@ function! vimconsole#define_highlight() " {{{
     if s:is_vimconsole_window(bufnr)
       execute winnr . "wincmd w"
 
-      hi! def link vimconsolePromptString          SpecialKey
-      hi! def link vimconsoleNumber     Normal
-      hi! def link vimconsoleString     Normal
-      hi! def link vimconsoleFuncref    Normal
-      hi! def link vimconsoleList       Normal
-      hi! def link vimconsoleDictionary Normal
-      hi! def link vimconsoleFloat      Normal
-      hi! def link vimconsoleFloat      Normal
-      hi! def link vimconsolePrompt     Title
-      "
-      if g:vimconsole#plain_mode
-        hi! def link vimconsoleHidden     Normal
-        hi! def link vimconsoleError      Normal
-        hi! def link vimconsoleWarning    Normal
-      else
-        hi! def link vimconsoleHidden     Ignore
-        hi! def link vimconsoleError      Error
-        hi! def link vimconsoleWarning    WarningMsg
-      endif
+
+      for [key,defalut_value] in items({
+            \  'PromptString' : 'SpecialKey',
+            \  'Number'       : 'Normal',
+            \  'String'       : 'Normal',
+            \  'Funcref'      : 'Normal',
+            \  'List'         : 'Normal',
+            \  'Dictionary'   : 'Normal',
+            \  'Float'        : 'Normal',
+            \  'Prompt'       : 'Title',
+            \  'Hidden'       : 'Ignore',
+            \  'Error'        : 'Error',
+            \  'Warning'      : 'WarningMsg',
+            \  'PlainMode'    : 'Normal',
+            \ })
+
+        let value = get(g:vimconsole#highlight_default_link_groups,key,defalut_value)
+
+        if -1 != index(['Error', 'Warning', 'Hidden'], key)
+          if g:vimconsole#plain_mode
+            execute printf('highlight! default link vimconsole%s  %s','PlainMode',value)
+          else
+            execute printf('highlight! default link vimconsole%s  %s',key,value)
+          endif
+        else
+          execute printf('highlight! default link vimconsole%s  %s',key,value)
+        endif
+
+      endfor
 
     endif
   endfor

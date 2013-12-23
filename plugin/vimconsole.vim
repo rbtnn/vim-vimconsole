@@ -23,6 +23,8 @@ let g:vimconsole#dump_path = get(g:,'vimconsole#dump_path', expand('~/vimconsole
 let g:vimconsole#enable_quoted_string = get(g:,'vimconsole#enable_quoted_string', 1)
 let g:vimconsole#no_default_key_mappings = get(g:,'g:vimconsole#no_default_key_mappings', 0)
 
+let g:vimconsole#highlight_default_link_groups = get(g:,'vimconsole#highlight_default_link_groups',{})
+
 command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
 command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
 command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
