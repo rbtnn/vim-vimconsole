@@ -8,6 +8,6 @@ It is like Google Chrome Developer Console.
 
 # LICENSE
 
-Distributed under MIT License. See `doc/vimconsole.txt`
+Distributed under MIT License. See LICENSE.txt
 
 

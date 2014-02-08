@@ -2,7 +2,7 @@
 LICENSE
 =======
 
-|vim-textobj-variable| is distributed under MIT license.
+|vimconsole.vim| is distributed under MIT license.
 
         Copyright (c) 2014 rbtnn
 
