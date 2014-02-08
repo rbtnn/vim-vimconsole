@@ -8,6 +8,27 @@ let s:PROMPT_STRING = 'VimConsole>'
 let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
 
+augroup vimconsole
+  autocmd!
+  autocmd TextChanged * :call <sid>text_changed()
+augroup END
+
+function! s:text_changed() " {{{
+  if &filetype is# s:FILETYPE
+    let tab_session = s:session()
+    let tab_session['input_str'] = ''
+    let m = matchlist(getline('$'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
+    if ! empty(m)
+      let tab_session['input_str'] = m[1]
+    endif
+    let save_cursor = getpos(".")
+    silent % delete _
+    silent put=s:get_log()
+    silent 1 delete _
+    call setpos('.', save_cursor)
+  endif
+endfunction " }}}
+
 function! s:session() " {{{
   let t:vimconsole = get(t:,'vimconsole',{})
   return t:vimconsole
@@ -232,7 +253,8 @@ function! s:get_log() " {{{
     let rtn += lines
     let start = obj.last
   endfor
-  let rtn += [ s:PROMPT_STRING ]
+  let tab_session = s:session()
+  let rtn += [ s:PROMPT_STRING . get(tab_session,'input_str','') ]
   return join(rtn,"\n")
 endfunction " }}}
 
@@ -272,6 +294,11 @@ function! s:key_cr() " {{{
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     if ! empty(m)
       let input_str = m[1]
+
+      if line('.') is line('$')
+        let tab_session = s:session()
+        let tab_session['input_str'] = ''
+      endif
 
       if ! empty(input_str)
         call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
