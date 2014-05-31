@@ -30,8 +30,16 @@ function! s:text_changed() " {{{
 endfunction " }}}
 
 function! s:session() " {{{
-  let t:vimconsole = get(t:,'vimconsole',{})
-  return t:vimconsole
+  if g:vimconsole#session_type is# 't:'
+    let t:vimconsole = get(t:,'vimconsole',{})
+    return t:vimconsole
+  elseif g:vimconsole#session_type is# 'g:'
+    let g:vimconsole = get(g:,'vimconsole',{})
+    return g:vimconsole
+  else
+    let t:vimconsole = get(t:,'vimconsole',{})
+    return t:vimconsole
+  endif
 endfunction " }}}
 function! s:object(...) " {{{
   let tab_session = s:session()

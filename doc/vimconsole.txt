@@ -134,6 +134,13 @@ VARIABLES                                               *vimconsole-variables*
     Does not set default key mappings.  
 
 
+* g:vimconsole#session_type                        *g:vimconsole#session_type*
+
+    This value is a session-type of vimconsole.vim.
+    session-type is one of values(`'t:'`,`'g:'`).
+    default: `'t:'`
+
+
 ------------------------------------------------------------------------------
 
 * t:vimconsole.message_queue                      *t:vimconsole.message_queue* 
