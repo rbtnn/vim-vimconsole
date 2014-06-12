@@ -13,7 +13,7 @@ augroup vimconsole
   autocmd TextChanged * :call <sid>text_changed()
 augroup END
 
-function! s:text_changed() " {{{
+function! s:text_changed()
   if &filetype is# s:FILETYPE
     let tab_session = s:session()
     let tab_session['input_str'] = ''
@@ -27,9 +27,9 @@ function! s:text_changed() " {{{
     silent 1 delete _
     call setpos('.', save_cursor)
   endif
-endfunction " }}}
+endfunction
 
-function! s:session() " {{{
+function! s:session()
   if g:vimconsole#session_type is# 't:'
     let t:vimconsole = get(t:,'vimconsole',{})
     return t:vimconsole
@@ -40,8 +40,8 @@ function! s:session() " {{{
     let t:vimconsole = get(t:,'vimconsole',{})
     return t:vimconsole
   endif
-endfunction " }}}
-function! s:object(...) " {{{
+endfunction
+function! s:object(...)
   let tab_session = s:session()
 
   let message_queue = deepcopy(get(tab_session,'message_queue',[]))
@@ -61,19 +61,19 @@ function! s:object(...) " {{{
     let tab_session.objs = tab_session.objs[(objs_len - n):]
   endif
   return get(tab_session,'objs',[])
-endfunction " }}}
-function! s:is_vimconsole_window(bufnr) " {{{
+endfunction
+function! s:is_vimconsole_window(bufnr)
   return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
-endfunction " }}}
-function! s:get_curr_prompt_line_num() " {{{
+endfunction
+function! s:get_curr_prompt_line_num()
   if s:is_vimconsole_window(bufnr('%'))
     return line('.')
   else
     return 1
   endif
-endfunction " }}}
+endfunction
 
-function! s:hook_events(hook_type,context) " {{{
+function! s:hook_events(hook_type,context)
   let tab_session = s:session()
   try
     if ! get(tab_session,'is_hooking',0)
@@ -90,44 +90,44 @@ function! s:hook_events(hook_type,context) " {{{
   finally
     let tab_session.is_hooking = 0
   endtry
-endfunction " }}}
+endfunction
 
-function! s:add_log(true_type,false_type,value,list) " {{{
+function! s:add_log(true_type,false_type,value,list)
   if 0 < len(a:list)
     call s:object({ 'type' : a:true_type, 'value' : call('printf',[(a:value)]+a:list) })
   else
     call s:object({ 'type' : a:false_type, 'value' : deepcopy(a:value) })
   endif
-endfunction " }}}
+endfunction
 
-function! vimconsole#dump(path) " {{{
+function! vimconsole#dump(path)
   silent! call writefile(split(s:get_log(),"\n"),a:path)
-endfunction " }}}
-function! vimconsole#clear() " {{{
+endfunction
+function! vimconsole#clear()
   let tab_session = s:session()
   let tab_session.objs = []
   call vimconsole#redraw()
-endfunction " }}}
+endfunction
 
-function! vimconsole#assert(expr,obj,...) " {{{
+function! vimconsole#assert(expr,obj,...)
   if a:expr
     call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
   endif
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#assert' })
-endfunction " }}}
-function! vimconsole#log(obj,...) " {{{
+endfunction
+function! vimconsole#log(obj,...)
   call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#log' })
-endfunction " }}}
-function! vimconsole#warn(obj,...) " {{{
+endfunction
+function! vimconsole#warn(obj,...)
   call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#warn' })
-endfunction " }}}
-function! vimconsole#error(obj,...) " {{{
+endfunction
+function! vimconsole#error(obj,...)
   call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#error' })
-endfunction " }}}
-function! vimconsole#wintoggle() " {{{
+endfunction
+function! vimconsole#wintoggle()
   let close_flag = 0
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
@@ -140,8 +140,8 @@ function! vimconsole#wintoggle() " {{{
   if ! close_flag
     call vimconsole#winopen()
   endif
-endfunction " }}}
-function! vimconsole#is_open() " {{{
+endfunction
+function! vimconsole#is_open()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
     if s:is_vimconsole_window(bufnr)
@@ -149,8 +149,8 @@ function! vimconsole#is_open() " {{{
     endif
   endfor
   return 0
-endfunction " }}}
-function! vimconsole#winclose() " {{{
+endfunction
+function! vimconsole#winclose()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
     if s:is_vimconsole_window(bufnr)
@@ -158,9 +158,9 @@ function! vimconsole#winclose() " {{{
       close
     endif
   endfor
-endfunction " }}}
+endfunction
 
-function! s:object2lines(obj) " {{{
+function! s:object2lines(obj)
   let lines = []
 
   if type(function('tr')) == a:obj.type
@@ -238,8 +238,8 @@ function! s:object2lines(obj) " {{{
   else
     return [printf('%2s-%s', a:obj.type, get(lines,0,''))] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
   endif
-endfunction " }}}
-function! vimconsole#at(...) " {{{
+endfunction
+function! vimconsole#at(...)
   let line_num = 0 < a:0 ? a:1 : line(".")
   if type(line_num) == type(0)
     for obj in s:object()
@@ -249,8 +249,8 @@ function! vimconsole#at(...) " {{{
     endfor
   endif
   return {}
-endfunction " }}}
-function! s:get_log() " {{{
+endfunction
+function! s:get_log()
   let rtn = []
   let reserved_lines_len = len(rtn)
   let start = reserved_lines_len
@@ -264,9 +264,9 @@ function! s:get_log() " {{{
   let tab_session = s:session()
   let rtn += [ s:PROMPT_STRING . get(tab_session,'input_str','') ]
   return join(rtn,"\n")
-endfunction " }}}
+endfunction
 
-function! vimconsole#redraw(...) " {{{
+function! vimconsole#redraw(...)
   let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
   let curr_winnr = winnr()
   for winnr in range(1,winnr('$'))
@@ -287,17 +287,15 @@ function! vimconsole#redraw(...) " {{{
     endif
   endfor
   execute curr_winnr . "wincmd w"
-endfunction " }}}
-function! vimconsole#foldtext() " {{{
+endfunction
+function! vimconsole#foldtext()
   return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
-endfunction " }}}
-function! vimconsole#bufenter() " {{{
+endfunction
+function! vimconsole#bufenter()
   call vimconsole#redraw()
-  " move the last prompt line.
-  normal G
-endfunction " }}}
+endfunction
 
-function! s:key_cr() " {{{
+function! s:key_cr()
   if line('.') == s:get_curr_prompt_line_num()
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     if ! empty(m)
@@ -330,40 +328,42 @@ function! s:key_cr() " {{{
           endif
         endfor
 
-        call vimconsole#bufenter()
+        if s:is_vimconsole_window(winbufnr(0))
+          call vimconsole#bufenter()
+        endif
       endif
 
     endif
   endif
-endfunction " }}}
+endfunction
 
-function! s:key_c_n() " {{{
+function! s:key_c_n()
   normal 0
   call search(s:PROMPT_STRING_PATTERN, 'w')
   normal 0f>
-endfunction " }}}
-function! s:key_c_p() " {{{
+endfunction
+function! s:key_c_p()
   normal 0
   call search(s:PROMPT_STRING_PATTERN, 'bw')
   normal 0f>
-endfunction " }}}
+endfunction
 
-function! vimconsole#define_plug_keymappings() " {{{
+function! vimconsole#define_plug_keymappings()
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
-endfunction " }}}
-function! vimconsole#define_default_keymappings() " {{{
+endfunction
+function! vimconsole#define_default_keymappings()
   inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
   nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
   if ! g:vimconsole#no_default_key_mappings
     nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
     nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
   endif
-endfunction " }}}
-function! vimconsole#define_syntax() " {{{
+endfunction
+function! vimconsole#define_syntax()
   let curr_winnr = winnr()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
@@ -389,8 +389,8 @@ function! vimconsole#define_syntax() " {{{
     endif
   endfor
   execute curr_winnr . "wincmd w"
-endfunction " }}}
-function! vimconsole#define_highlight() " {{{
+endfunction
+function! vimconsole#define_highlight()
   let curr_winnr = winnr()
   for winnr in range(1,winnr('$'))
     let bufnr = winbufnr(winnr)
@@ -430,9 +430,9 @@ function! vimconsole#define_highlight() " {{{
     endif
   endfor
   execute curr_winnr . "wincmd w"
-endfunction " }}}
+endfunction
 
-function! vimconsole#winopen(...) " {{{
+function! vimconsole#winopen(...)
   let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
   let curr_winnr = winnr()
   if vimconsole#is_open()
@@ -481,6 +481,6 @@ function! vimconsole#winopen(...) " {{{
     let &splitbelow = tmp
   endtry
   execute curr_winnr . "wincmd w"
-endfunction " }}}
+endfunction
 
-"  vim: set ts=2 sts=2 sw=2 ft=vim fdm=marker ff=unix :
+"  vim: set ts=2 sts=2 sw=2 ft=vim ff=unix :
