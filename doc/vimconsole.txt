@@ -280,14 +280,6 @@ FUNCTIONS                                               *vimconsole-functions*
     Same as |VimConsoleRedraw|.
 
 
-* vimconsole#at(...)                                         *vimconsole#at()*
-
-    Return the object of the specified line.
-    The object is deepcopy object. So you can not rewrite the object.
-    First argument of {...} is a line number at VimConsole. default:`line(".")`
-    Return `{}` if the argument is invalid.
-
-
 * vimconsole#is_open()                                  *vimconsole#is_open()*
 
     1 is returned if VimConsole is opened. 
@@ -366,7 +358,7 @@ A: You can use below setting in `.vimrc`.
 >
     let g:vimconsole#hooks = {}
     function! g:vimconsole#hooks.on_post_redraw(context)
-      normal G
+      normal G$l
     endfunction
 <
 

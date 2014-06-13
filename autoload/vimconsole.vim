@@ -164,7 +164,6 @@ function! s:object2lines(obj)
   let lines = []
 
   if type(function('tr')) == a:obj.type
-    " {{{
     redir => hoge
     try
       execute 'function ' . matchstr(string(a:obj.value),"function('\\zs.*\\ze')")
@@ -173,9 +172,7 @@ function! s:object2lines(obj)
     endtry
     redir END
     let lines += split(hoge,"\n")
-    " }}}
   elseif type({}) == a:obj.type
-    " {{{
     try
       let lines += split(PrettyPrint(a:obj.value),"\n")
     catch
@@ -185,9 +182,7 @@ function! s:object2lines(obj)
       endfor
       let lines += [ '}' ]
     endtry
-    " }}}
   elseif type([]) == a:obj.type
-    " {{{
     try
       let lines += split(PrettyPrint(a:obj.value),"\n")
     catch
@@ -198,39 +193,26 @@ function! s:object2lines(obj)
       endfor
       let lines += [ ']' ]
     endtry
-    " }}}
   elseif type(0.0) == a:obj.type
-    " {{{
     let lines += [ string(a:obj.value) ]
-    " }}}
   elseif type(0) == a:obj.type
-    " {{{
     let lines += [ string(a:obj.value) ]
-    " }}}
   elseif s:TYPE_ERROR == a:obj.type || s:TYPE_WARN == a:obj.type
-    " {{{
     if empty(a:obj.value)
       let lines += [""]
     else
       let lines += split(a:obj.value,"\n")
     endif
-    " }}}
   elseif s:TYPE_PROMPT == a:obj.type
-    " {{{
     let lines += [ a:obj.value ]
-    " }}}
   elseif type('') == a:obj.type
-    " {{{
     if g:vimconsole#enable_quoted_string
       let lines += map(split(a:obj.value,"\n"),'string(v:val)')
     else
       let lines += split(a:obj.value,"\n")
     endif
-    " }}}
   else
-    " {{{
     let lines += map(split(a:obj.value,"\n"),'string(v:val)')
-    " }}}
   endif
 
   if g:vimconsole#plain_mode
@@ -238,17 +220,6 @@ function! s:object2lines(obj)
   else
     return [printf('%2s-%s', a:obj.type, get(lines,0,''))] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
   endif
-endfunction
-function! vimconsole#at(...)
-  let line_num = 0 < a:0 ? a:1 : line(".")
-  if type(line_num) == type(0)
-    for obj in s:object()
-      if obj.start <= line_num && line_num <= obj.last
-        return deepcopy(obj.value)
-      endif
-    endfor
-  endif
-  return {}
 endfunction
 function! s:get_log()
   let rtn = []
@@ -322,9 +293,11 @@ function! s:key_cr()
           call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
         endtry
 
+        let cwd = getcwd()
         for winnr in range(1,winnr('$'))
           if s:is_vimconsole_window(winbufnr(winnr))
             execute winnr . "wincmd w"
+            execute printf('lcd %s', cwd)
           endif
         endfor
 
@@ -336,7 +309,6 @@ function! s:key_cr()
     endif
   endif
 endfunction
-
 function! s:key_c_n()
   normal 0
   call search(s:PROMPT_STRING_PATTERN, 'w')
@@ -347,6 +319,24 @@ function! s:key_c_p()
   call search(s:PROMPT_STRING_PATTERN, 'bw')
   normal 0f>
 endfunction
+function! s:key_i_bs()
+  if &l:filetype is# s:FILETYPE
+    if len(s:PROMPT_STRING) < (getpos('.')[2] + getpos('.')[3] - 1)
+      return "\<bs>"
+    else
+      return ''
+    endif
+  endif
+endfunction
+function! s:key_i_del()
+  if &l:filetype is# s:FILETYPE
+    if len(s:PROMPT_STRING) < (getpos('.')[2] + getpos('.')[3] - 1)
+      return "\<del>"
+    else
+      return ''
+    endif
+  endif
+endfunction
 
 function! vimconsole#define_plug_keymappings()
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
@@ -356,8 +346,10 @@ function! vimconsole#define_plug_keymappings()
   nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
 endfunction
 function! vimconsole#define_default_keymappings()
-  inoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
-  nnoremap <silent><buffer> <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+  inoremap <silent><buffer><expr> <bs>   <sid>key_i_bs()
+  inoremap <silent><buffer><expr> <del>  <sid>key_i_del()
+  inoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+  nnoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
   if ! g:vimconsole#no_default_key_mappings
     nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
     nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)

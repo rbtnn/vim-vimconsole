@@ -22,7 +22,7 @@ let g:vimconsole#split_rule = get(g:,'vimconsole#split_rule', 'bottom')
 let g:vimconsole#dump_path = get(g:,'vimconsole#dump_path', expand('~/vimconsole.dump'))
 let g:vimconsole#enable_quoted_string = get(g:,'vimconsole#enable_quoted_string', 1)
 let g:vimconsole#no_default_key_mappings = get(g:,'vimconsole#no_default_key_mappings', 0)
-let g:vimconsole#session_type = get(g:,'vimconsole#session_type', 'tab')
+let g:vimconsole#session_type = get(g:,'vimconsole#session_type', 't:')
 
 let g:vimconsole#highlight_default_link_groups = get(g:,'vimconsole#highlight_default_link_groups',{})
 
