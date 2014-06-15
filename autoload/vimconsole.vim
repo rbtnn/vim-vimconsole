@@ -21,11 +21,13 @@ function! s:text_changed()
     if ! empty(m)
       let tab_session['input_str'] = m[1]
     endif
+    let save_line = getline(".")
     let save_cursor = getpos(".")
     silent % delete _
     silent put=s:get_log()
     silent 1 delete _
     call setpos('.', save_cursor)
+    call setline('.', save_line)
   endif
 endfunction
 
@@ -338,6 +340,20 @@ function! s:key_i_del()
   endif
 endfunction
 
+function! vimconsole#define_commands()
+  command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
+  command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
+  command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
+  command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
+  command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
+  command! -nargs=0 -bar VimConsoleDump   :call vimconsole#dump(g:vimconsole#dump_path)
+
+  execute printf('command! -nargs=1 -complete=%s VimConsole        :call vimconsole#log(<args>)', g:vimconsole#command_complete)
+
+  command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
+  command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
+  command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
+endfunction
 function! vimconsole#define_plug_keymappings()
   nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
   nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>

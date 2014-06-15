@@ -26,17 +26,9 @@ let g:vimconsole#session_type = get(g:,'vimconsole#session_type', 't:')
 
 let g:vimconsole#highlight_default_link_groups = get(g:,'vimconsole#highlight_default_link_groups',{})
 
-command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
-command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)
-command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
-command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
-command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
-command! -nargs=0 -bar VimConsoleDump   :call vimconsole#dump(g:vimconsole#dump_path)
+let g:vimconsole#command_complete = get(g:,'vimconsole#command_complete', 'expression')
 
-command! -nargs=1 -complete=expression VimConsole        :call vimconsole#log(<args>)
-command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
-command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
-command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
+call vimconsole#define_commands()
 
 let &cpo = s:save_cpo
 finish
