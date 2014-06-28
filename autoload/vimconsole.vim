@@ -15,22 +15,22 @@ augroup END
 
 function! s:text_changed()
   if &filetype is# s:FILETYPE
-    let tab_session = s:session()
-    let tab_session['input_str'] = ''
+    let curr_session = s:session()
+    let curr_session['input_str'] = ''
     let m = matchlist(getline('$'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     if ! empty(m)
-      let tab_session['input_str'] = m[1]
+      let curr_session['input_str'] = m[1]
     endif
     let save_line = getline(".")
     let save_cursor = getpos(".")
+    let lines = join(vimconsole#buflines(), "\n") 
     silent % delete _
-    silent put=s:get_log()
+    silent put=lines
     silent 1 delete _
     call setpos('.', save_cursor)
     call setline('.', save_line)
   endif
 endfunction
-
 function! s:session()
   if g:vimconsole#session_type is# 't:'
     let t:vimconsole = get(t:,'vimconsole',{})
@@ -44,25 +44,25 @@ function! s:session()
   endif
 endfunction
 function! s:object(...)
-  let tab_session = s:session()
+  let curr_session = s:session()
 
-  let message_queue = deepcopy(get(tab_session,'message_queue',[]))
+  let message_queue = deepcopy(get(curr_session,'message_queue',[]))
   if !empty(message_queue)
-    let tab_session.message_queue = []
+    let curr_session.message_queue = []
     for x in message_queue
       call s:add_log(s:TYPE_STRING,type(x),x,[])
     endfor
   endif
 
   if 0 < a:0
-    let tab_session.objs = get(tab_session,'objs',[]) + [ a:1 ]
-    let objs_len = len(tab_session.objs)
+    let curr_session.objs = get(curr_session,'objs',[]) + [ a:1 ]
+    let objs_len = len(curr_session.objs)
     let n = g:vimconsole#maximum_caching_objects_count
     let n = n <= 0 ? 0 : n
     let n = objs_len < n ? objs_len : n
-    let tab_session.objs = tab_session.objs[(objs_len - n):]
+    let curr_session.objs = curr_session.objs[(objs_len - n):]
   endif
-  return get(tab_session,'objs',[])
+  return get(curr_session,'objs',[])
 endfunction
 function! s:is_vimconsole_window(bufnr)
   return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
@@ -74,12 +74,11 @@ function! s:get_curr_prompt_line_num()
     return 1
   endif
 endfunction
-
 function! s:hook_events(hook_type,context)
-  let tab_session = s:session()
+  let curr_session = s:session()
   try
-    if ! get(tab_session,'is_hooking',0)
-      let tab_session.is_hooking = 1
+    if ! get(curr_session,'is_hooking',0)
+      let curr_session.is_hooking = 1
       if has_key(g:vimconsole#hooks,a:hook_type)
         call g:vimconsole#hooks[(a:hook_type)](a:context)
       endif
@@ -90,10 +89,9 @@ function! s:hook_events(hook_type,context)
       endif
     endif
   finally
-    let tab_session.is_hooking = 0
+    let curr_session.is_hooking = 0
   endtry
 endfunction
-
 function! s:add_log(true_type,false_type,value,list)
   if 0 < len(a:list)
     call s:object({ 'type' : a:true_type, 'value' : call('printf',[(a:value)]+a:list) })
@@ -101,67 +99,6 @@ function! s:add_log(true_type,false_type,value,list)
     call s:object({ 'type' : a:false_type, 'value' : deepcopy(a:value) })
   endif
 endfunction
-
-function! vimconsole#dump(path)
-  silent! call writefile(split(s:get_log(),"\n"),a:path)
-endfunction
-function! vimconsole#clear()
-  let tab_session = s:session()
-  let tab_session.objs = []
-  call vimconsole#redraw()
-endfunction
-
-function! vimconsole#assert(expr,obj,...)
-  if a:expr
-    call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
-  endif
-  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#assert' })
-endfunction
-function! vimconsole#log(obj,...)
-  call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
-  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#log' })
-endfunction
-function! vimconsole#warn(obj,...)
-  call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
-  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#warn' })
-endfunction
-function! vimconsole#error(obj,...)
-  call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
-  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#error' })
-endfunction
-function! vimconsole#wintoggle()
-  let close_flag = 0
-  for winnr in range(1,winnr('$'))
-    let bufnr = winbufnr(winnr)
-    if s:is_vimconsole_window(bufnr)
-      execute winnr . "wincmd w"
-      close
-      let close_flag = 1
-    endif
-  endfor
-  if ! close_flag
-    call vimconsole#winopen()
-  endif
-endfunction
-function! vimconsole#is_open()
-  for winnr in range(1,winnr('$'))
-    let bufnr = winbufnr(winnr)
-    if s:is_vimconsole_window(bufnr)
-      return 1
-    endif
-  endfor
-  return 0
-endfunction
-function! vimconsole#winclose()
-  for winnr in range(1,winnr('$'))
-    let bufnr = winbufnr(winnr)
-    if s:is_vimconsole_window(bufnr)
-      execute winnr . "wincmd w"
-      close
-    endif
-  endfor
-endfunction
-
 function! s:object2lines(obj)
   let lines = []
 
@@ -219,51 +156,6 @@ function! s:object2lines(obj)
 
   return lines
 endfunction
-function! s:get_log()
-  let rtn = []
-  let reserved_lines_len = len(rtn)
-  let start = reserved_lines_len
-  for obj in s:object()
-    let lines = s:object2lines(obj)
-    let obj.start = start + 1
-    let obj.last = start + len(lines)
-    let rtn += lines
-    let start = obj.last
-  endfor
-  let tab_session = s:session()
-  let rtn += [ s:PROMPT_STRING . get(tab_session,'input_str','') ]
-  return join(rtn,"\n")
-endfunction
-
-function! vimconsole#redraw(...)
-  let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
-  let curr_winnr = winnr()
-  for winnr in range(1,winnr('$'))
-    let bufnr = winbufnr(winnr)
-    if s:is_vimconsole_window(bufnr)
-      if bang
-        call vimconsole#clear()
-      endif
-      execute winnr . "wincmd w"
-
-      call s:hook_events('on_pre_redraw',{ 'tag' : 'vimconsole#redraw' })
-
-      silent % delete _
-      silent put=s:get_log()
-      silent 1 delete _
-
-      call s:hook_events('on_post_redraw',{ 'tag' : 'vimconsole#redraw' })
-    endif
-  endfor
-  execute curr_winnr . "wincmd w"
-endfunction
-function! vimconsole#foldtext()
-  return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
-endfunction
-function! vimconsole#bufenter()
-  call vimconsole#redraw()
-endfunction
-
 function! s:key_cr()
   if line('.') == s:get_curr_prompt_line_num()
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
@@ -271,8 +163,8 @@ function! s:key_cr()
       let input_str = m[1]
 
       if line('.') is line('$')
-        let tab_session = s:session()
-        let tab_session['input_str'] = ''
+        let curr_session = s:session()
+        let curr_session['input_str'] = ''
       endif
 
       if ! empty(input_str)
@@ -336,6 +228,108 @@ function! s:key_i_del()
   endif
 endfunction
 
+function! vimconsole#dump(path)
+  silent! call writefile(vimconsole#buflines(), a:path)
+endfunction
+function! vimconsole#clear()
+  let curr_session = s:session()
+  let curr_session.objs = []
+  call vimconsole#redraw()
+endfunction
+function! vimconsole#assert(expr,obj,...)
+  if a:expr
+    call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
+  endif
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#assert' })
+endfunction
+function! vimconsole#log(obj,...)
+  call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#log' })
+endfunction
+function! vimconsole#warn(obj,...)
+  call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#warn' })
+endfunction
+function! vimconsole#error(obj,...)
+  call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
+  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#error' })
+endfunction
+function! vimconsole#wintoggle()
+  let close_flag = 0
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      execute winnr . "wincmd w"
+      close
+      let close_flag = 1
+    endif
+  endfor
+  if ! close_flag
+    call vimconsole#winopen()
+  endif
+endfunction
+function! vimconsole#is_open()
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      return 1
+    endif
+  endfor
+  return 0
+endfunction
+function! vimconsole#winclose()
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      execute winnr . "wincmd w"
+      close
+    endif
+  endfor
+endfunction
+function! vimconsole#buflines()
+  let rtn = []
+  let reserved_lines_len = len(rtn)
+  let start = reserved_lines_len
+  for obj in s:object()
+    let lines = s:object2lines(obj)
+    let obj.start = start + 1
+    let obj.last = start + len(lines)
+    let rtn += lines
+    let start = obj.last
+  endfor
+  let curr_session = s:session()
+  let rtn += [ s:PROMPT_STRING . get(curr_session,'input_str','') ]
+  return rtn
+endfunction
+function! vimconsole#redraw(...)
+  let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
+  let curr_winnr = winnr()
+  for winnr in range(1,winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if s:is_vimconsole_window(bufnr)
+      if bang
+        call vimconsole#clear()
+      endif
+      execute winnr . "wincmd w"
+
+      call s:hook_events('on_pre_redraw',{ 'tag' : 'vimconsole#redraw' })
+
+      let lines =join(vimconsole#buflines(), "\n") 
+      silent % delete _
+      silent put=lines
+      silent 1 delete _
+
+      call s:hook_events('on_post_redraw',{ 'tag' : 'vimconsole#redraw' })
+    endif
+  endfor
+  execute curr_winnr . "wincmd w"
+endfunction
+function! vimconsole#foldtext()
+  return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
+endfunction
+function! vimconsole#bufenter()
+  call vimconsole#redraw()
+endfunction
 function! vimconsole#define_commands()
   command! -nargs=0 -bar -bang VimConsoleOpen   :call vimconsole#winopen(<q-bang>)
   command! -nargs=0 -bar -bang VimConsoleRedraw :call vimconsole#redraw(<q-bang>)

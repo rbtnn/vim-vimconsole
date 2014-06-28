@@ -170,7 +170,11 @@ function! vimconsole#async#system(input_str)
       call vimconsole#winopen()
     endif
   else
-    if g:loaded_vimproc
+    try
+      call vimproc#version()
+    catch '.*'
+    endtry
+    if exists('g:loaded_vimproc')
       call s:async_system([(a:input_str)], { 'outputter' : function('vimconsole#async#default_outputter') })
     else
       return system(a:input_str)
