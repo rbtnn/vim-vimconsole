@@ -34,12 +34,16 @@ VARIABLES                                               *vimconsole-variables*
 
 * g:vimconsole#width                                      *g:vimconsole#width* 
 
-    VimConsole's window width. default: 40
+    Use it as VimConsole's window width if the type is Number. 
+    Use it evaluated as VimConsole's window width if the type is String. 
+    default: '&columns / 2'
 
 
 * g:vimconsole#height                                    *g:vimconsole#height* 
 
-    VimConsole's window height. default: 6
+    Use it as VimConsole's window height if the type is Number. 
+    Use it evaluated as VimConsole's window height if the type is String. 
+    default: '&lines / 2'
 
 
 * g:vimconsole#auto_redraw                          *g:vimconsole#auto_redraw* 
@@ -52,12 +56,6 @@ VARIABLES                                               *vimconsole-variables*
                                   *g:vimconsole#maximum_caching_objects_count* 
 
     Maximum objects count caching by VimConsole. default: 20
-
-
-* g:vimconsole#plain_mode                            *g:vimconsole#plain_mode* 
-
-    Disable highlight, fold and prefix-string('1-','1|'.. ,etc)
-    in VimConsole. default: 0
 
 
 * g:vimconsole#dump_path                              *g:vimconsole#dump_path* 
@@ -141,41 +139,8 @@ VARIABLES                                               *vimconsole-variables*
     default: `'t:'`
 
 
-------------------------------------------------------------------------------
-
-* t:vimconsole.message_queue                      *t:vimconsole.message_queue* 
-
-    Add logs to VimConsole silently.
-    You can use this, ever if your environment is `filetype-off`.
-    So these are not occurred errors, ever if you do not install VimConsole.
-    default: undefined
-
-            Example:
->
-            " First using setting.
-            let t:vimconsole = get(t:,'vimconsole',{})
-            let t:vimconsole.message_queue =
-                \ get(t:vimconsole,'message_queue',[])
-
-
-            " Append something.
-            let t:vimconsole.message_queue += [ 3, 4, 5 ]
-
-            ...
-
-            " You can add some type values.
-            let t:vimconsole.message_queue += [ {}, "hoge" ]
-<
-
-
 ==============================================================================
 COMMANDS                                                 *vimconsole-commands*
-
-* :VimConsole {obj}                                               *VimConsole*
-
-    Print to VimConsole.
-    Same as `vimconsole#log({obj},...)`.
-
 
 * :VimConsoleLog {obj}                                         *VimConsoleLog*
 
@@ -289,27 +254,6 @@ FUNCTIONS                                               *vimconsole-functions*
 * vimconsole#dump(path)                                *vimconsole#dump(path)*
 
     Same as |VimConsoleDump|.
-
-
-* vimconsole#define_plug_keymappings()  *vimconsole#define_plug_keymappings()*
-
-    Define <Plug> key mappings of VimConsole. 
-
-
-* vimconsole#define_default_keymappings()
-                                     *vimconsole#define_default_keymappings()*
-
-    Define default key mappings of VimConsole. 
-
-
-* vimconsole#define_syntax()                      *vimconsole#define_syntax()*
-
-    Define syntaxes of VimConsole.
-
-
-* vimconsole#define_highlight()                *vimconsole#define_highlight()*
-
-    Define highlights of VimConsole.
 
 
 ------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ let s:TYPE_WARN = 7
 let s:TYPE_PROMPT = 8
 
 let s:PROMPT_STRING = 'VimConsole>'
-let s:PROMPT_STRING_PATTERN = '^\%(\|...\)' . s:PROMPT_STRING
+let s:PROMPT_STRING_PATTERN = '^' . s:PROMPT_STRING
 let s:FILETYPE = 'vimconsole'
 
 augroup vimconsole
@@ -217,11 +217,7 @@ function! s:object2lines(obj)
     let lines += map(split(a:obj.value,"\n"),'string(v:val)')
   endif
 
-  if g:vimconsole#plain_mode
-    return lines
-  else
-    return [printf('%2s-%s', a:obj.type, get(lines,0,''))] + map(lines[1:],'printf("%2s|%s", a:obj.type, v:val)')
-  endif
+  return lines
 endfunction
 function! s:get_log()
   let rtn = []
@@ -347,97 +343,9 @@ function! vimconsole#define_commands()
   command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
   command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
   command! -nargs=0 -bar VimConsoleDump   :call vimconsole#dump(g:vimconsole#dump_path)
-
-  execute printf('command! -nargs=1 -complete=%s VimConsole        :call vimconsole#log(<args>)', g:vimconsole#command_complete)
-
   command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
   command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
   command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
-endfunction
-function! vimconsole#define_plug_keymappings()
-  nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
-  nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
-  nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
-  nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
-  nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
-endfunction
-function! vimconsole#define_default_keymappings()
-  inoremap <silent><buffer><expr> <bs>   <sid>key_i_bs()
-  inoremap <silent><buffer><expr> <del>  <sid>key_i_del()
-  inoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
-  nnoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
-  if ! g:vimconsole#no_default_key_mappings
-    nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
-    nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
-  endif
-endfunction
-function! vimconsole#define_syntax()
-  let curr_winnr = winnr()
-  for winnr in range(1,winnr('$'))
-    let bufnr = winbufnr(winnr)
-    if s:is_vimconsole_window(bufnr)
-      execute winnr . "wincmd w"
-
-      " containedin=ALL
-      execute "syn match   vimconsolePromptString  '^" . s:PROMPT_STRING . "' containedin=ALL"
-      "                                                         ^-- Is not s:PROMPT_STRING_PATTERN !
-
-      syn match   vimconsoleHidden              '^..\(-\||\)' containedin=ALL
-      " normal
-      syn match   vimconsoleNumber      /^ 0\(-\||\).*$/
-      syn match   vimconsoleString      /^ 1\(-\||\).*$/
-      syn match   vimconsoleFuncref     /^ 2\(-\||\).*$/
-      syn match   vimconsoleList        /^ 3\(-\||\).*$/
-      syn match   vimconsoleDictionary  /^ 4\(-\||\).*$/
-      syn match   vimconsoleFloat       /^ 5\(-\||\).*$/
-      syn match   vimconsoleError       /^ 6\(-\||\).*$/
-      syn match   vimconsoleWarning     /^ 7\(-\||\).*$/
-      syn match   vimconsolePrompt      /^ 8\(-\||\).*$/
-
-    endif
-  endfor
-  execute curr_winnr . "wincmd w"
-endfunction
-function! vimconsole#define_highlight()
-  let curr_winnr = winnr()
-  for winnr in range(1,winnr('$'))
-    let bufnr = winbufnr(winnr)
-    if s:is_vimconsole_window(bufnr)
-      execute winnr . "wincmd w"
-
-
-      for [key,defalut_value] in items({
-            \  'PromptString' : 'SpecialKey',
-            \  'Number'       : 'Normal',
-            \  'String'       : 'Normal',
-            \  'Funcref'      : 'Normal',
-            \  'List'         : 'Normal',
-            \  'Dictionary'   : 'Normal',
-            \  'Float'        : 'Normal',
-            \  'Prompt'       : 'Title',
-            \  'Hidden'       : 'Ignore',
-            \  'Error'        : 'Error',
-            \  'Warning'      : 'WarningMsg',
-            \  'PlainMode'    : 'Normal',
-            \ })
-
-        let value = get(g:vimconsole#highlight_default_link_groups,key,defalut_value)
-
-        if -1 != index(['Error', 'Warning', 'Hidden'], key)
-          if g:vimconsole#plain_mode
-            execute printf('highlight! default link vimconsole%s  %s','PlainMode',value)
-          else
-            execute printf('highlight! default link vimconsole%s  %s',key,value)
-          endif
-        else
-          execute printf('highlight! default link vimconsole%s  %s',key,value)
-        endif
-
-      endfor
-
-    endif
-  endfor
-  execute curr_winnr . "wincmd w"
 endfunction
 
 function! vimconsole#winopen(...)
@@ -453,36 +361,48 @@ function! vimconsole#winopen(...)
   let tmp = &splitbelow
   try
     new
-    if g:vimconsole#split_rule ==# 'top'
+    let width = type(g:vimconsole#width) is type(0) ? g:vimconsole#width : eval(g:vimconsole#width) 
+    let height = type(g:vimconsole#height) is type(0) ? g:vimconsole#height : eval(g:vimconsole#height) 
+    if g:vimconsole#split_rule is# 'top'
       execute "wincmd K"
-      execute 'resize ' . g:vimconsole#height
-    elseif g:vimconsole#split_rule ==# 'left'
+      execute 'resize ' . height
+    elseif g:vimconsole#split_rule is# 'left'
       execute "wincmd H"
-      execute 'vertical resize ' . g:vimconsole#width
-    elseif g:vimconsole#split_rule ==# 'right'
+      execute 'vertical resize ' . width
+    elseif g:vimconsole#split_rule is# 'right'
       execute "wincmd L"
-      execute 'vertical resize ' . g:vimconsole#width
+      execute 'vertical resize ' . width
     else
       " defalut: bottom
       execute "wincmd J"
-      execute 'resize ' . g:vimconsole#height
+      execute 'resize ' . height
     endif
     let b:vimconsole = 1
-    setlocal buftype=nofile nobuflisted noswapfile bufhidden=hide
+    setlocal buftype=nofile
+    setlocal nobuflisted
+    setlocal noswapfile
+    setlocal bufhidden=hide
+    setlocal nospell
+    setlocal foldmethod=manual
     execute 'setlocal filetype=' . s:FILETYPE
 
-    if g:vimconsole#plain_mode
-      setlocal foldmethod=manual
-    else
-      setlocal foldmethod=expr
-      setlocal foldtext=vimconsole#foldtext()
-      setlocal foldexpr=(getline(v:lnum)[2]==#'\|')?'=':'>1'
+    nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
+    nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
+    nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
+    nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
+    nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
+
+    inoremap <silent><buffer><expr> <bs>   <sid>key_i_bs()
+    inoremap <silent><buffer><expr> <del>  <sid>key_i_del()
+    inoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+    nnoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+    if ! g:vimconsole#no_default_key_mappings
+      nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
+      nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
     endif
 
-    call vimconsole#define_plug_keymappings()
-    call vimconsole#define_default_keymappings()
-    call vimconsole#define_syntax()
-    call vimconsole#define_highlight()
+    call clearmatches()
+    call matchadd('Title', s:PROMPT_STRING_PATTERN)
 
     call vimconsole#redraw()
   finally
