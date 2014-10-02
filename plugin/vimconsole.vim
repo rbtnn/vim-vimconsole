@@ -10,7 +10,6 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
-let g:vimconsole#dump_path = get(g:,'vimconsole#dump_path', expand('~/vimconsole.dump'))
 let g:vimconsole#enable_quoted_string = get(g:,'vimconsole#enable_quoted_string', 1)
 let g:vimconsole#eval_function_name = get(g:,'vimconsole#eval_function_name','eval')
 let g:vimconsole#height = get(g:,'vimconsole#height', '&lines / 2')

@@ -58,11 +58,6 @@ VARIABLES                                               *vimconsole-variables*
     Maximum objects count caching by VimConsole. default: 20
 
 
-* g:vimconsole#dump_path                              *g:vimconsole#dump_path* 
-
-    See |VimConsoleDump|.
-
-
 * g:vimconsole#enable_quoted_string        *g:vimconsole#enable_quoted_string* 
 
     Print a string with single-quote, if its type is string.
@@ -188,11 +183,6 @@ COMMANDS                                                 *vimconsole-commands*
     If with bang, call vimconsole#clear before to redraw.  
 
 
-* :VimConsoleDump                                             *VimConsoleDump*
-
-    Dump VimConsole's logs to |g:vimconsole#dump_path|.
-
-
 ==============================================================================
 FUNCTIONS                                               *vimconsole-functions*
 
@@ -251,11 +241,6 @@ FUNCTIONS                                               *vimconsole-functions*
     0 is returned if VimConsole is closed. 
 
  
-* vimconsole#dump(path)                                *vimconsole#dump(path)*
-
-    Same as |VimConsoleDump|.
-
-
 ------------------------------------------------------------------------------
 KEY MAPPINGS                                         *vimconsole-key-mappings*
 

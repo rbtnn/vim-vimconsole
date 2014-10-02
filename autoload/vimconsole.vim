@@ -228,8 +228,23 @@ function! s:key_i_del()
   endif
 endfunction
 
-function! vimconsole#dump(path)
-  silent! call writefile(vimconsole#buflines(), a:path)
+function! vimconsole#save_session(...)
+  silent! call writefile([
+        \   printf("%s\t%s", 'g:vimconsole', string(get(g:, 'vimconsole', {}))),
+        \   printf("%s\t%s", 't:vimconsole', string(get(t:, 'vimconsole', {}))),
+        \ ], expand('~/.vimconsole_session'))
+endfunction
+function! vimconsole#load_session(...)
+  for line in readfile(expand('~/.vimconsole_session'))
+    let m = matchlist(line, '^\([^\t]*\)\t\(.*\)$')
+    if !empty(m)
+      if m[1] == 'g:vimconsole'
+        let g:vimconsole = eval(m[2])
+      elseif m[1] == 't:vimconsole'
+        let t:vimconsole = eval(m[2])
+      endif
+    endif
+  endfor
 endfunction
 function! vimconsole#clear()
   let curr_session = s:session()
@@ -336,10 +351,11 @@ function! vimconsole#define_commands()
   command! -nargs=0 -bar VimConsoleClose  :call vimconsole#winclose()
   command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
   command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
-  command! -nargs=0 -bar VimConsoleDump   :call vimconsole#dump(g:vimconsole#dump_path)
   command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
   command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
   command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
+  command! -nargs=0 -bar VimConsoleSaveSession   :call vimconsole#save_session()
+  command! -nargs=0 -bar VimConsoleLoadSession   :call vimconsole#load_session()
 endfunction
 
 function! vimconsole#winopen(...)
