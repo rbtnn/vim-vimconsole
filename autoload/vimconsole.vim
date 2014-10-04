@@ -156,6 +156,36 @@ function! s:object2lines(obj)
 
   return lines
 endfunction
+function! vimconsole#execute_on_prompt(input)
+  if ! empty(a:input)
+    call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . a:input), [])
+
+    for winnr in range(1, winnr('$'))
+      if winbufnr(winnr) == bufnr('#')
+        execute winnr . "wincmd w"
+      endif
+    endfor
+
+    try
+      let F = function(g:vimconsole#eval_function_name)
+      call vimconsole#log(F(a:input))
+    catch
+      call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
+    endtry
+
+    let cwd = getcwd()
+    for winnr in range(1, winnr('$'))
+      if s:is_vimconsole_window(winbufnr(winnr))
+        execute winnr . "wincmd w"
+        execute printf('lcd %s', cwd)
+      endif
+    endfor
+
+    if s:is_vimconsole_window(winbufnr(0))
+      call vimconsole#bufenter()
+    endif
+  endif
+endfunction
 function! s:key_cr()
   if line('.') == s:get_curr_prompt_line_num()
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
@@ -167,34 +197,7 @@ function! s:key_cr()
         let curr_session['input_str'] = ''
       endif
 
-      if ! empty(input_str)
-        call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . input_str), [])
-
-        for winnr in range(1,winnr('$'))
-          if winbufnr(winnr) == bufnr('#')
-            execute winnr . "wincmd w"
-          endif
-        endfor
-
-        try
-          let F = function(g:vimconsole#eval_function_name)
-          call vimconsole#log(F(input_str))
-        catch
-          call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
-        endtry
-
-        let cwd = getcwd()
-        for winnr in range(1,winnr('$'))
-          if s:is_vimconsole_window(winbufnr(winnr))
-            execute winnr . "wincmd w"
-            execute printf('lcd %s', cwd)
-          endif
-        endfor
-
-        if s:is_vimconsole_window(winbufnr(0))
-          call vimconsole#bufenter()
-        endif
-      endif
+      call vimconsole#execute_on_prompt(input_str)
 
     endif
   endif

@@ -100,6 +100,7 @@ function! vimconsole#async#default_outputter(...)
   endif
 endfunction
 function! vimconsole#async#default_finalizer(vimproc_status)
+  call vimconsole#log(printf('[vimproc_status: %s]', a:vimproc_status))
 endfunction
 function! vimconsole#async#default_initializer()
 endfunction
@@ -121,10 +122,9 @@ function! vimconsole#async#system(input_str, ...)
           \   'outputter'   : 1 < a:0 ? a:2 : function('vimconsole#async#default_outputter'),
           \   'finalizer'   : 2 < a:0 ? a:3 : function('vimconsole#async#default_finalizer'),
           \ })
-    return 1
   catch '.*'
   endtry
-  return 0
+  return ''
 endfunction
 function! vimconsole#async#system_with_vim(input_str, ...)
   if -1 isnot match(a:input_str, '^\s*pwd\s*$')
@@ -159,6 +159,6 @@ function! vimconsole#async#system_with_vim(input_str, ...)
   else
     call vimconsole#async#system(a:input_str)
   endif
-  return 1
+  return ''
 endfunction
 
