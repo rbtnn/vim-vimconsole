@@ -1,16 +1,6 @@
 
 scriptencoding utf-8
 
-function! s:buf_nr(bname)
-  return bufnr(s:buf_escape(a:bname))
-endfunction
-function! s:buf_escape(bname)
-  return '^' . join(map(split(a:bname, '\zs'), '"[".v:val."]"'), '') . '$'
-endfunction
-function! s:buf_winnr(bname)
-  return bufwinnr(s:buf_escape(a:bname))
-endfunction
-
 function! s:receive_vimproc_result(key)
   let session = vimconsole#async#session(a:key).session
   let vimproc = session._vimproc
@@ -28,14 +18,13 @@ function! s:receive_vimproc_result(key)
       return 0
     endif
   catch
-    " XXX: How is an internal error displayed?
     call session.outputter(('async vimproc: ' . v:throwpoint . "\n" . v:exception), '_')
   endtry
 
   call vimproc.stdout.close()
   call vimproc.stderr.close()
   call vimproc.waitpid()
-  call session.finish(get(vimproc, 'status', 1))
+  call session.finalizer(get(vimproc, 'status', 1))
   call session.sweep(get(vimproc, 'status', 1))
   return 1
 endfunction
@@ -51,91 +40,70 @@ function! s:async_system(commands, ...)
 
   call vimconsole#async#session(session.key,session)
 
-  " Create augroup.
   execute 'augroup ' . session.runner_id
-augroup END
+  augroup END
 
-let vimproc = vimproc#pgroup_open(join(a:commands, ' && '))
-call vimproc.stdin.write(session.input)
-call vimproc.stdin.close()
+  let vimproc = vimproc#pgroup_open(join(a:commands, ' && '))
+  call vimproc.stdin.write(session.input)
+  call vimproc.stdin.close()
 
-let session._vimproc = vimproc
+  let session._vimproc = vimproc
 
-if ! has_key(session,'outputter')
-  let session['outputter'] = function('vimconsole#async#default_outputter')
-endif
+  if ! has_key(session,'initializer')
+    let session['initializer'] = function('vimconsole#async#default_initializer')
+  endif
 
-if ! has_key(session,'finish')
-  function! session.finish(vimproc_status)
+  if ! has_key(session,'outputter')
+    let session['outputter'] = function('vimconsole#async#default_outputter')
+  endif
+
+  if ! has_key(session, 'finalizer')
+    let session['finalizer'] = function('vimconsole#async#default_finalizer')
+  endif
+
+  function! session.sweep(vimproc_status)
+    if has_key(self, '_autocmd')
+      execute 'autocmd! ' . self.runner_id
+    endif
+    if has_key(self, '_updatetime')
+      let &updatetime = self._updatetime
+    endif
   endfunction
-endif
 
-function! session.sweep(vimproc_status)
-  if has_key(self, '_autocmd')
-    execute 'autocmd! ' . self.runner_id
+  if session.config.sleep
+    execute 'sleep' session.config.sleep . 'm'
   endif
-  if has_key(self, '_updatetime')
-    let &updatetime = self._updatetime
+
+  call session.initializer()
+  if s:receive_vimproc_result(session.key)
+    return
   endif
-endfunction
 
-" Wait a little because execution might end immediately.
-if session.config.sleep
-  execute 'sleep' session.config.sleep . 'm'
-endif
+  execute 'augroup ' . session.runner_id
+  execute 'autocmd! CursorHold,CursorHoldI * call s:receive_vimproc_result(' . string(session.key) . ')'
+  augroup END
 
-if s:receive_vimproc_result(session.key)
-  return
-endif
-
-" Execution is continuing.
-execute 'augroup ' . session.runner_id
-execute 'autocmd! CursorHold,CursorHoldI * call s:receive_vimproc_result(' . string(session.key) . ')'
-augroup END
-
-let session._autocmd = 1
-if session.config.updatetime
-  let session._updatetime = &updatetime
-  let &updatetime = session.config.updatetime
-endif
+  let session._autocmd = 1
+  if session.config.updatetime
+    let session._updatetime = &updatetime
+    let &updatetime = session.config.updatetime
+  endif
 endfunction
 
 function! vimconsole#async#default_outputter(...)
   let data = get(a:000, 0, '')
   let type = get(a:000, 1, '')
   if type is 'stdout'
-    call vimconsole#log(data)
+    call vimconsole#log(join(vimconsole#enc#iconv(data), "\n"))
   elseif type is 'stderr'
-    call vimconsole#error(data)
+    call vimconsole#log(join(vimconsole#enc#iconv(data), "\n"))
   endif
 endfunction
-function! vimconsole#async#winopen(...)
-  let lines = get(a:000, 0, [])
-  let mode = get(a:000, 1, 'a')
-  let bname = get(a:000, 2, '[async]')
-
-  let curr_bufname = bufname('%')
-
-  if ! bufexists(bname)
-    execute printf('split %s', bname)
-    setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted
-  elseif s:buf_winnr(bname) isnot -1
-    execute s:buf_winnr(bname) 'wincmd w'
-  else
-    execute 'split'
-    execute 'buffer' s:buf_nr(bname)
-  endif
-
-  if mode is# 'w'
-    silent % delete _
-    silent put=vimconsole#enc#iconv(lines)
-    silent 1 delete _
-  elseif mode is# 'a'
-    call append('$', vimconsole#enc#iconv(lines))
-  endif
-
-  execute s:buf_winnr(curr_bufname) 'wincmd w'
+function! vimconsole#async#default_finalizer(vimproc_status)
 endfunction
+function! vimconsole#async#default_initializer()
+endfunction
+
 function! vimconsole#async#session(key,...)
   let s:async_sessions = get(s:,'async_sessions',{})
   if 0 < a:0
@@ -145,7 +113,20 @@ function! vimconsole#async#session(key,...)
   endif
   return { 'key' : a:key, 'session' : s:async_sessions[ a:key ] }
 endfunction
-function! vimconsole#async#system(input_str)
+function! vimconsole#async#system(input_str, ...)
+  try
+    call vimproc#version()
+    call s:async_system([(a:input_str)], {
+          \   'initializer' : 0 < a:0 ? a:1 : function('vimconsole#async#default_initializer'),
+          \   'outputter'   : 1 < a:0 ? a:2 : function('vimconsole#async#default_outputter'),
+          \   'finalizer'   : 2 < a:0 ? a:3 : function('vimconsole#async#default_finalizer'),
+          \ })
+    return 1
+  catch '.*'
+  endtry
+  return 0
+endfunction
+function! vimconsole#async#system_with_vim(input_str, ...)
   if -1 isnot match(a:input_str, '^\s*pwd\s*$')
     return getcwd()
   elseif -1 isnot match(a:input_str, '^\s*l\?cd .*$')
@@ -169,16 +150,15 @@ function! vimconsole#async#system(input_str)
       silent execute printf('edit %s', path)
       call vimconsole#winopen()
     endif
+  elseif -1 isnot match(a:input_str, '^\s*:.*$')
+    let cmd = matchstr(a:input_str, '^\s*:\zs.*$')
+    redir => output
+    silent! execute cmd
+    redir END
+    call vimconsole#log(output)
   else
-    try
-      call vimproc#version()
-    catch '.*'
-    endtry
-    if exists('g:loaded_vimproc')
-      call s:async_system([(a:input_str)], { 'outputter' : function('vimconsole#async#default_outputter') })
-    else
-      return system(a:input_str)
-    endif
+    call vimconsole#async#system(a:input_str)
   endif
-  return ''
+  return 1
 endfunction
+

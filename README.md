@@ -8,4 +8,3 @@ It is like Google Chrome Developer Console.
 
 Distributed under MIT License. See LICENSE.txt
 
-
