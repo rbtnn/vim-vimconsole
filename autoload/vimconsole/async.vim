@@ -6,16 +6,18 @@ function! s:receive_vimproc_result(key)
   let vimproc = session._vimproc
 
   try
-    if !vimproc.stdout.eof
-      call session.outputter(vimproc.stdout.read(), 'stdout')
-    endif
-    if !vimproc.stderr.eof
-      call session.outputter(vimproc.stderr.read(), 'stderr')
-    endif
+    if !has_key(session, 'stop')
+      if !vimproc.stdout.eof
+        call session.outputter(vimproc.stdout.read(), 'stdout')
+      endif
+      if !vimproc.stderr.eof
+        call session.outputter(vimproc.stderr.read(), 'stderr')
+      endif
 
-    if !(vimproc.stdout.eof && vimproc.stderr.eof)
-      call feedkeys(mode() ==# 'i' ? "\<C-g>\<ESC>" : "g\<ESC>", 'n')
-      return 0
+      if !(vimproc.stdout.eof && vimproc.stderr.eof)
+        call feedkeys(mode() ==# 'i' ? "\<C-g>\<ESC>" : "g\<ESC>", 'n')
+        return 0
+      endif
     endif
   catch
     call session.outputter(('async vimproc: ' . v:throwpoint . "\n" . v:exception), '_')
@@ -32,16 +34,16 @@ function! s:async_system(commands, ...)
   let session = get(a:000, 0, {})
 
   let session.input = get(session,'input', '')
-  let session.key = get(session,'key', 'A')
-  let session.runner_id = get(session,'runner_id', 'plugin-async-runner-vimproc')
+  let session.key = get(session,'key', fnamemodify(tempname(), ':t:r'))
+  let session.runner_id = get(session,'runner_id', 'plugin-async-runner-vimproc-' . session.key)
   let session.config = get(session,'config',{})
   let session.config.updatetime = get(session.config,'updatetime',0)
   let session.config.sleep = get(session.config,'sleep',50)
 
-  call vimconsole#async#session(session.key,session)
+  call vimconsole#async#session(session.key, session)
 
   execute 'augroup ' . session.runner_id
-  augroup END
+  execute 'augroup END'
 
   let vimproc = vimproc#pgroup_open(join(a:commands, ' && '))
   call vimproc.stdin.write(session.input)
@@ -68,6 +70,7 @@ function! s:async_system(commands, ...)
     if has_key(self, '_updatetime')
       let &updatetime = self._updatetime
     endif
+    execute 'augroup! ' . self.runner_id
   endfunction
 
   if session.config.sleep
@@ -80,8 +83,8 @@ function! s:async_system(commands, ...)
   endif
 
   execute 'augroup ' . session.runner_id
-  execute 'autocmd! CursorHold,CursorHoldI * call s:receive_vimproc_result(' . string(session.key) . ')'
-  augroup END
+  execute '  autocmd! CursorHold,CursorHoldI * call s:receive_vimproc_result(' . string(session.key) . ')'
+  execute 'augroup END'
 
   let session._autocmd = 1
   if session.config.updatetime
@@ -90,7 +93,7 @@ function! s:async_system(commands, ...)
   endif
 endfunction
 
-function! vimconsole#async#default_outputter(...)
+function! vimconsole#async#default_outputter(...) dict
   let data = get(a:000, 0, '')
   let type = get(a:000, 1, '')
   if type is 'stdout'
@@ -99,12 +102,20 @@ function! vimconsole#async#default_outputter(...)
     call vimconsole#log(join(vimconsole#enc#iconv(data), "\n"))
   endif
 endfunction
-function! vimconsole#async#default_finalizer(vimproc_status)
-  call vimconsole#log(printf('[vimproc_status: %s]', a:vimproc_status))
+function! vimconsole#async#default_finalizer(vimproc_status) dict
+  call vimconsole#log(printf('[vimconsole] async session end: %s', self.key))
 endfunction
-function! vimconsole#async#default_initializer()
+function! vimconsole#async#default_initializer() dict
+  call vimconsole#log(printf('[vimconsole] async session begin: %s', self.key))
 endfunction
 
+function! vimconsole#async#stop()
+  let s:async_sessions = get(s:,'async_sessions',{})
+  for key in keys(s:async_sessions)
+    let session = vimconsole#async#session(key).session
+    let session['stop'] = 1
+  endfor
+endfunction
 function! vimconsole#async#session(key,...)
   let s:async_sessions = get(s:,'async_sessions',{})
   if 0 < a:0

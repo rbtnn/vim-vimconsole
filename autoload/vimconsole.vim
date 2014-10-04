@@ -447,6 +447,7 @@ function! vimconsole#winopen(...)
 
     call clearmatches()
     call matchadd('Title', s:PROMPT_STRING_PATTERN)
+    call matchadd('Comment', '^\[vimconsole].*$')
 
     call vimconsole#redraw()
   finally
