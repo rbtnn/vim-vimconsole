@@ -228,23 +228,54 @@ function! s:key_i_del()
   endif
 endfunction
 
-function! vimconsole#save_session(...)
+function! vimconsole#save_session(path)
+  let path = expand(a:path == "" ? '~/.vimconsole_session' : a:path)
   silent! call writefile([
         \   printf("%s\t%s", 'g:vimconsole', string(get(g:, 'vimconsole', {}))),
         \   printf("%s\t%s", 't:vimconsole', string(get(t:, 'vimconsole', {}))),
-        \ ], expand('~/.vimconsole_session'))
+        \   printf("%s\t%s", 'g:vimconsole#auto_redraw', string(g:vimconsole#auto_redraw)),
+        \   printf("%s\t%s", 'g:vimconsole#enable_quoted_string', string(g:vimconsole#enable_quoted_string)),
+        \   printf("%s\t%s", 'g:vimconsole#eval_function_name', string(g:vimconsole#eval_function_name)),
+        \   printf("%s\t%s", 'g:vimconsole#height', string(g:vimconsole#height)),
+        \   printf("%s\t%s", 'g:vimconsole#maximum_caching_objects_count', string(g:vimconsole#maximum_caching_objects_count)),
+        \   printf("%s\t%s", 'g:vimconsole#no_default_key_mappings', string(g:vimconsole#no_default_key_mappings)),
+        \   printf("%s\t%s", 'g:vimconsole#session_type', string(g:vimconsole#session_type)),
+        \   printf("%s\t%s", 'g:vimconsole#split_rule', string(g:vimconsole#split_rule)),
+        \   printf("%s\t%s", 'g:vimconsole#width', string(g:vimconsole#width)),
+        \ ], path)
 endfunction
-function! vimconsole#load_session(...)
-  for line in readfile(expand('~/.vimconsole_session'))
-    let m = matchlist(line, '^\([^\t]*\)\t\(.*\)$')
-    if !empty(m)
-      if m[1] == 'g:vimconsole'
-        let g:vimconsole = eval(m[2])
-      elseif m[1] == 't:vimconsole'
-        let t:vimconsole = eval(m[2])
+function! vimconsole#load_session(path)
+  let path = expand(a:path == "" ? '~/.vimconsole_session' : a:path)
+  if filereadable(path)
+    for line in readfile(path)
+      let m = matchlist(line, '^\([^\t]*\)\t\(.*\)$')
+      if !empty(m)
+        if m[1] == 'g:vimconsole'
+          let g:vimconsole = eval(m[2])
+        elseif m[1] == 't:vimconsole'
+          let t:vimconsole = eval(m[2])
+        elseif m[1] == 'g:vimconsole#auto_redraw'
+          let g:vimconsole#auto_redraw = eval(m[2])
+        elseif m[1] == 'g:vimconsole#enable_quoted_string'
+          let g:vimconsole#enable_quoted_string = eval(m[2])
+        elseif m[1] == 'g:vimconsole#eval_function_name'
+          let g:vimconsole#eval_function_name = eval(m[2])
+        elseif m[1] == 'g:vimconsole#height'
+          let g:vimconsole#height = eval(m[2])
+        elseif m[1] == 'g:vimconsole#maximum_caching_objects_count'
+          let g:vimconsole#maximum_caching_objects_count = eval(m[2])
+        elseif m[1] == 'g:vimconsole#no_default_key_mappings'
+          let g:vimconsole#no_default_key_mappings = eval(m[2])
+        elseif m[1] == 'g:vimconsole#session_type'
+          let g:vimconsole#session_type = eval(m[2])
+        elseif m[1] == 'g:vimconsole#split_rule'
+          let g:vimconsole#split_rule = eval(m[2])
+        elseif m[1] == 'g:vimconsole#width'
+          let g:vimconsole#width = eval(m[2])
+        endif
       endif
-    endif
-  endfor
+    endfor
+  endif
 endfunction
 function! vimconsole#clear()
   let curr_session = s:session()
@@ -354,8 +385,8 @@ function! vimconsole#define_commands()
   command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
   command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
   command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
-  command! -nargs=0 -bar VimConsoleSaveSession   :call vimconsole#save_session()
-  command! -nargs=0 -bar VimConsoleLoadSession   :call vimconsole#load_session()
+  command! -nargs=? -complete=file -bar VimConsoleSaveSession   :call vimconsole#save_session(<q-args>)
+  command! -nargs=? -complete=file -bar VimConsoleLoadSession   :call vimconsole#load_session(<q-args>)
 endfunction
 
 function! vimconsole#winopen(...)
