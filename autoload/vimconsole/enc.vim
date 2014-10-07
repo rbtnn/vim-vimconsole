@@ -205,7 +205,7 @@ function! vimconsole#enc#of(str)
   endif
 endfunction
 function! vimconsole#enc#iconv(lines,...)
-  let to_encode = a:0 > 0 ? a:1 : &termencoding
+  let to_encode = a:0 > 0 ? a:1 : &encoding
   let lines = type(a:lines) == type([]) ? copy(a:lines) : [(a:lines)]
   let encoded_lines = map(lines,'iconv(v:val,vimconsole#enc#of(v:val),to_encode)')
   let lines_str = join(encoded_lines,"\n")
