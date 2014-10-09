@@ -67,13 +67,6 @@ endfunction
 function! s:is_vimconsole_window(bufnr)
   return ( getbufvar(a:bufnr,'&filetype') ==# s:FILETYPE ) && ( getbufvar(a:bufnr,'vimconsole') )
 endfunction
-function! s:get_curr_prompt_line_num()
-  if s:is_vimconsole_window(bufnr('%'))
-    return line('.')
-  else
-    return 1
-  endif
-endfunction
 function! s:hook_events(hook_type,context)
   let curr_session = s:session()
   try
@@ -187,18 +180,15 @@ function! vimconsole#execute_on_prompt(input)
   endif
 endfunction
 function! s:key_cr()
-  if line('.') == s:get_curr_prompt_line_num()
+  if s:is_vimconsole_window(bufnr('%'))
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     if ! empty(m)
       let input_str = m[1]
-
       if line('.') is line('$')
         let curr_session = s:session()
         let curr_session['input_str'] = ''
       endif
-
       call vimconsole#execute_on_prompt(input_str)
-
     endif
   endif
 endfunction
