@@ -149,6 +149,37 @@ function! s:object2lines(obj)
 
   return lines
 endfunction
+function! s:vimconsole_initialize()
+  let b:vimconsole = 1
+  setlocal buftype=nofile
+  setlocal nobuflisted
+  setlocal noswapfile
+  setlocal bufhidden=hide
+  setlocal nospell
+  setlocal foldmethod=manual
+  execute 'setlocal filetype=' . s:FILETYPE
+
+  nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
+  nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
+
+  inoremap <silent><buffer><expr> <bs>   <sid>key_i_bs()
+  inoremap <silent><buffer><expr> <del>  <sid>key_i_del()
+  inoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+  nnoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
+  if ! g:vimconsole#no_default_key_mappings
+    nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
+    nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
+  endif
+
+  call clearmatches()
+  call matchadd('Title', s:PROMPT_STRING_PATTERN)
+  call matchadd('Comment', '^\[vimconsole].*$')
+
+  call vimconsole#redraw()
+endfunction
 
 function! s:key_cr()
   if s:is_vimconsole_window(bufnr('%'))
@@ -394,58 +425,29 @@ function! vimconsole#winopen(...)
       return 0
     endif
   endif
-  let tmp = &splitbelow
-  try
-    new
-    let width = type(g:vimconsole#width) is type(0) ? g:vimconsole#width : eval(g:vimconsole#width) 
-    let height = type(g:vimconsole#height) is type(0) ? g:vimconsole#height : eval(g:vimconsole#height) 
-    if g:vimconsole#split_rule is# 'top'
-      execute "wincmd K"
-      execute 'resize ' . height
-    elseif g:vimconsole#split_rule is# 'left'
-      execute "wincmd H"
-      execute 'vertical resize ' . width
-    elseif g:vimconsole#split_rule is# 'right'
-      execute "wincmd L"
-      execute 'vertical resize ' . width
-    else
-      " defalut: bottom
-      execute "wincmd J"
-      execute 'resize ' . height
-    endif
-    let b:vimconsole = 1
-    setlocal buftype=nofile
-    setlocal nobuflisted
-    setlocal noswapfile
-    setlocal bufhidden=hide
-    setlocal nospell
-    setlocal foldmethod=manual
-    execute 'setlocal filetype=' . s:FILETYPE
-
-    nnoremap <silent><buffer> <Plug>(vimconsole_close) :<C-u>VimConsoleClose<cr>
-    nnoremap <silent><buffer> <Plug>(vimconsole_clear) :<C-u>VimConsoleClear<cr>
-    nnoremap <silent><buffer> <Plug>(vimconsole_redraw) :<C-u>VimConsoleRedraw<cr>
-    nnoremap <silent><buffer> <Plug>(vimconsole_next_prompt) :<C-u>call <sid>key_c_n()<cr>
-    nnoremap <silent><buffer> <Plug>(vimconsole_previous_prompt) :<C-u>call <sid>key_c_p()<cr>
-
-    inoremap <silent><buffer><expr> <bs>   <sid>key_i_bs()
-    inoremap <silent><buffer><expr> <del>  <sid>key_i_del()
-    inoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
-    nnoremap <silent><buffer>       <cr> <esc>:<C-u>call <sid>key_cr()<cr>
-    if ! g:vimconsole#no_default_key_mappings
-      nmap <silent><buffer> <C-p> <Plug>(vimconsole_previous_prompt)
-      nmap <silent><buffer> <C-n> <Plug>(vimconsole_next_prompt)
-    endif
-
-    call clearmatches()
-    call matchadd('Title', s:PROMPT_STRING_PATTERN)
-    call matchadd('Comment', '^\[vimconsole].*$')
-
-    call vimconsole#redraw()
-  finally
-    let &splitbelow = tmp
-  endtry
+  new
+  let width = type(g:vimconsole#width) is type(0) ? g:vimconsole#width : eval(g:vimconsole#width)
+  let height = type(g:vimconsole#height) is type(0) ? g:vimconsole#height : eval(g:vimconsole#height)
+  if g:vimconsole#split_rule is# 'top'
+    execute "wincmd K"
+    execute 'resize ' . height
+  elseif g:vimconsole#split_rule is# 'left'
+    execute "wincmd H"
+    execute 'vertical resize ' . width
+  elseif g:vimconsole#split_rule is# 'right'
+    execute "wincmd L"
+    execute 'vertical resize ' . width
+  else
+    " defalut: bottom
+    execute "wincmd J"
+    execute 'resize ' . height
+  endif
+  call s:vimconsole_initialize()
   execute curr_winnr . "wincmd w"
+endfunction
+function! vimconsole#tabopen()
+  tabnew
+  call s:vimconsole_initialize()
 endfunction
 
 "  vim: set ts=2 sts=2 sw=2 ft=vim ff=unix :
