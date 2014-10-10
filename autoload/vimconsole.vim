@@ -150,6 +150,7 @@ function! s:object2lines(obj)
   return lines
 endfunction
 function! s:vimconsole_initialize()
+  execute printf('edit vimconsole@%s', fnamemodify(tempname(), ':t:r'))
   let b:vimconsole = 1
   setlocal buftype=nofile
   setlocal nobuflisted
