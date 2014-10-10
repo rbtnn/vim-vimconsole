@@ -149,36 +149,7 @@ function! s:object2lines(obj)
 
   return lines
 endfunction
-function! vimconsole#execute_on_prompt(input)
-  if ! empty(a:input)
-    call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . a:input), [])
 
-    for winnr in range(1, winnr('$'))
-      if winbufnr(winnr) == bufnr('#')
-        execute winnr . "wincmd w"
-      endif
-    endfor
-
-    try
-      let F = function(g:vimconsole#eval_function_name)
-      call vimconsole#log(F(a:input))
-    catch
-      call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
-    endtry
-
-    let cwd = getcwd()
-    for winnr in range(1, winnr('$'))
-      if s:is_vimconsole_window(winbufnr(winnr))
-        execute winnr . "wincmd w"
-        execute printf('lcd %s', cwd)
-      endif
-    endfor
-
-    if s:is_vimconsole_window(winbufnr(0))
-      call vimconsole#bufenter()
-    endif
-  endif
-endfunction
 function! s:key_cr()
   if s:is_vimconsole_window(bufnr('%'))
     let m = matchlist(getline('.'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
@@ -221,6 +192,38 @@ function! s:key_i_del()
   endif
 endfunction
 
+function! vimconsole#execute_on_prompt(input)
+  if ! empty(a:input)
+    call s:add_log(s:TYPE_PROMPT, s:TYPE_PROMPT, (s:PROMPT_STRING . a:input), [])
+
+    let is_vimcon = s:is_vimconsole_window(winbufnr(0))
+
+    if is_vimcon
+      for winnr in range(1, winnr('$'))
+        if winbufnr(winnr) == bufnr('#')
+          execute winnr . "wincmd w"
+        endif
+      endfor
+    endif
+
+    try
+      let F = function(g:vimconsole#eval_function_name)
+      call vimconsole#log(F(a:input))
+    catch
+      call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
+    endtry
+
+    if is_vimcon
+      for winnr in range(1, winnr('$'))
+        if s:is_vimconsole_window(winbufnr(winnr))
+          execute winnr . "wincmd w"
+          call vimconsole#bufenter()
+          break
+        endif
+      endfor
+    endif
+  endif
+endfunction
 function! vimconsole#save_session(path)
   let path = expand(a:path == "" ? '~/.vimconsole_session' : a:path)
   silent! call writefile([
@@ -381,7 +384,6 @@ function! vimconsole#define_commands()
   command! -nargs=? -complete=file -bar VimConsoleSaveSession   :call vimconsole#save_session(<q-args>)
   command! -nargs=? -complete=file -bar VimConsoleLoadSession   :call vimconsole#load_session(<q-args>)
 endfunction
-
 function! vimconsole#winopen(...)
   let bang = 0 < a:0 ? ( a:1 ==# '!' ) : 0
   let curr_winnr = winnr()
