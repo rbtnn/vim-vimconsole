@@ -9,6 +9,7 @@ let g:loaded_vimconsole = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
+let g:vimconsole#startinsert = get(g:, 'vimconsole#startinsert', 0)
 let g:vimconsole#auto_redraw = get(g:,'vimconsole#auto_redraw',0)
 let g:vimconsole#enable_quoted_string = get(g:,'vimconsole#enable_quoted_string', 1)
 let g:vimconsole#eval_function_name = get(g:,'vimconsole#eval_function_name','eval')

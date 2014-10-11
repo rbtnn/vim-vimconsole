@@ -138,38 +138,32 @@ function! vimconsole#async#system(input_str, ...)
   return ''
 endfunction
 function! vimconsole#async#system_with_vim(input_str, ...)
+  let return_value = ''
+
+  if 1 < winnr('$')
+    call vimconsole#winclose()
+  endif
   if -1 isnot match(a:input_str, '^\s*pwd\s*$')
-    return getcwd()
+    let return_value = getcwd()
   elseif -1 isnot match(a:input_str, '^\s*l\?cd .*$')
     let str = matchstr(a:input_str, '^\s*l\?cd .*$')
     silent execute str
-    return getcwd()
-  elseif -1 isnot match(a:input_str, '^\s*vim\s*$')
-    if winnr('$') is 1
-      new
-    endif
-    call vimconsole#winclose()
-    enew
-    call vimconsole#winopen()
+    let return_value = getcwd()
   elseif -1 isnot match(a:input_str, '^\s*vim .*$')
-    if winnr('$') is 1
-      new
-    endif
     let path = matchstr(a:input_str, '^\s*vim \zs.*$')
     if filereadable(expand(path))
-      call vimconsole#winclose()
       silent execute printf('edit %s', path)
-      call vimconsole#winopen()
     endif
   elseif -1 isnot match(a:input_str, '^\s*:.*$')
     let cmd = matchstr(a:input_str, '^\s*:\zs.*$')
-    redir => output
+    redir => return_value
     silent! execute cmd
     redir END
-    call vimconsole#log(output)
   else
     call vimconsole#async#system(a:input_str)
   endif
-  return ''
+  call vimconsole#winopen()
+
+  return return_value
 endfunction
 

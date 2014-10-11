@@ -444,11 +444,18 @@ function! vimconsole#winopen(...)
     execute 'resize ' . height
   endif
   call s:vimconsole_initialize()
-  execute curr_winnr . "wincmd w"
+  if g:vimconsole#startinsert
+    startinsert!
+  else
+    execute curr_winnr . "wincmd w"
+  endif
 endfunction
 function! vimconsole#tabopen()
   tabnew
   call s:vimconsole_initialize()
+  if g:vimconsole#startinsert
+    startinsert!
+  endif
 endfunction
 
 "  vim: set ts=2 sts=2 sw=2 ft=vim ff=unix :

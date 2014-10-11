@@ -134,6 +134,11 @@ VARIABLES                                               *vimconsole-variables*
     default: `'t:'`
 
 
+* g:vimconsole#startinsert                         *g:vimconsole#startinsert*
+
+    This value is to start Insert mode on VimConsole.
+
+
 ==============================================================================
 COMMANDS                                                 *vimconsole-commands*
 
