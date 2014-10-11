@@ -240,7 +240,10 @@ function! vimconsole#execute_on_prompt(input)
 
     try
       let F = function(g:vimconsole#eval_function_name)
-      call vimconsole#log(F(a:input))
+      let output = F(a:input)
+      for line in type(output) is type([]) ? output : [output]
+        call vimconsole#log(line)
+      endfor
     catch
       call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
     endtry

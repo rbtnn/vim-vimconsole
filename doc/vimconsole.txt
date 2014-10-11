@@ -108,7 +108,8 @@ VARIABLES                                               *vimconsole-variables*
 
 * g:vimconsole#eval_function_name            *g:vimconsole#eval_function_name* 
 
-    This value is a function name. (signature: string -> string)
+    This value is a function name.
+    (signature: string -> string or string -> [string])
     It is used for evaluate a character string from prompt.
     default: 'eval'
 

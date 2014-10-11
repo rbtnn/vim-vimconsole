@@ -135,20 +135,20 @@ function! vimconsole#async#system(input_str, ...)
           \ })
   catch '.*'
   endtry
-  return ''
+  return []
 endfunction
 function! vimconsole#async#system_with_vim(input_str, ...)
-  let return_value = ''
+  let return_value = []
 
   if 1 < winnr('$')
     call vimconsole#winclose()
   endif
   if -1 isnot match(a:input_str, '^\s*pwd\s*$')
-    let return_value = getcwd()
+    let return_value += [getcwd()]
   elseif -1 isnot match(a:input_str, '^\s*l\?cd .*$')
     let str = matchstr(a:input_str, '^\s*l\?cd .*$')
     silent execute str
-    let return_value = getcwd()
+    let return_value += [getcwd()]
   elseif -1 isnot match(a:input_str, '^\s*vim .*$')
     let path = matchstr(a:input_str, '^\s*vim \zs.*$')
     if filereadable(expand(path))
@@ -156,9 +156,10 @@ function! vimconsole#async#system_with_vim(input_str, ...)
     endif
   elseif -1 isnot match(a:input_str, '^\s*:.*$')
     let cmd = matchstr(a:input_str, '^\s*:\zs.*$')
-    redir => return_value
+    redir => output
     silent! execute cmd
     redir END
+    let return_value += split(output, "\n")
   else
     call vimconsole#async#system(a:input_str)
   endif
