@@ -15,7 +15,6 @@ let g:vimconsole#enable_quoted_string = get(g:,'vimconsole#enable_quoted_string'
 let g:vimconsole#eval_function_name = get(g:,'vimconsole#eval_function_name','eval')
 let g:vimconsole#height = get(g:,'vimconsole#height', '&lines / 2')
 let g:vimconsole#hooks = get(g:,'vimconsole#hooks',{})
-let g:vimconsole#maximum_caching_objects_count = get(g:,'vimconsole#maximum_caching_objects_count', 100)
 let g:vimconsole#no_default_key_mappings = get(g:,'vimconsole#no_default_key_mappings', 0)
 let g:vimconsole#session_type = get(g:,'vimconsole#session_type', 't:')
 let g:vimconsole#split_rule = get(g:,'vimconsole#split_rule', 'bottom')

@@ -52,12 +52,6 @@ VARIABLES                                               *vimconsole-variables*
     default: 0
 
 
-* g:vimconsole#maximum_caching_objects_count
-                                  *g:vimconsole#maximum_caching_objects_count* 
-
-    Maximum objects count caching by VimConsole. default: 100
-
-
 * g:vimconsole#enable_quoted_string        *g:vimconsole#enable_quoted_string* 
 
     Print a string with single-quote, if its type is string.

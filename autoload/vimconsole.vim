@@ -23,7 +23,7 @@ function! s:text_changed()
     endif
     let save_line = getline(".")
     let save_cursor = getpos(".")
-    let lines = join(vimconsole#buflines(), "\n") 
+    let lines = join(vimconsole#buflines(), "\n")
     silent % delete _
     silent put=lines
     silent 1 delete _
@@ -56,11 +56,6 @@ function! s:object(...)
 
   if 0 < a:0
     let curr_session.objs = get(curr_session,'objs',[]) + [ a:1 ]
-    let objs_len = len(curr_session.objs)
-    let n = g:vimconsole#maximum_caching_objects_count
-    let n = n <= 0 ? 0 : n
-    let n = objs_len < n ? objs_len : n
-    let curr_session.objs = curr_session.objs[(objs_len - n):]
   endif
   return get(curr_session,'objs',[])
 endfunction
@@ -268,7 +263,6 @@ function! vimconsole#save_session(path)
         \   printf("%s\t%s", 'g:vimconsole#enable_quoted_string', string(g:vimconsole#enable_quoted_string)),
         \   printf("%s\t%s", 'g:vimconsole#eval_function_name', string(g:vimconsole#eval_function_name)),
         \   printf("%s\t%s", 'g:vimconsole#height', string(g:vimconsole#height)),
-        \   printf("%s\t%s", 'g:vimconsole#maximum_caching_objects_count', string(g:vimconsole#maximum_caching_objects_count)),
         \   printf("%s\t%s", 'g:vimconsole#no_default_key_mappings', string(g:vimconsole#no_default_key_mappings)),
         \   printf("%s\t%s", 'g:vimconsole#session_type', string(g:vimconsole#session_type)),
         \   printf("%s\t%s", 'g:vimconsole#split_rule', string(g:vimconsole#split_rule)),
@@ -293,8 +287,6 @@ function! vimconsole#load_session(path)
           let g:vimconsole#eval_function_name = eval(m[2])
         elseif m[1] == 'g:vimconsole#height'
           let g:vimconsole#height = eval(m[2])
-        elseif m[1] == 'g:vimconsole#maximum_caching_objects_count'
-          let g:vimconsole#maximum_caching_objects_count = eval(m[2])
         elseif m[1] == 'g:vimconsole#no_default_key_mappings'
           let g:vimconsole#no_default_key_mappings = eval(m[2])
         elseif m[1] == 'g:vimconsole#session_type'
