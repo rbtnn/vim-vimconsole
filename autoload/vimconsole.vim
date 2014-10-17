@@ -315,14 +315,6 @@ function! vimconsole#log(obj,...)
   call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#log' })
 endfunction
-function! vimconsole#warn(obj,...)
-  call s:add_log(s:TYPE_WARN,s:TYPE_WARN,a:obj,a:000)
-  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#warn' })
-endfunction
-function! vimconsole#error(obj,...)
-  call s:add_log(s:TYPE_ERROR,s:TYPE_ERROR,a:obj,a:000)
-  call s:hook_events('on_logged',{ 'tag' : 'vimconsole#error' })
-endfunction
 function! vimconsole#wintoggle()
   let close_flag = 0
   for winnr in range(1,winnr('$'))

@@ -143,18 +143,6 @@ COMMANDS                                                 *vimconsole-commands*
     Same as `vimconsole#log({obj},...)`.
 
 
-* :VimConsoleWarn {obj}                                       *VimConsoleWarn*
-
-    Print to VimConsole.
-    Same as `vimconsole#warn({obj},...)`.
-
-
-* :VimConsoleError {obj}                                     *VimConsoleError*
-
-    Print to VimConsole.
-    Same as `vimconsole#error({obj},...)`.
-
-
 * :VimConsoleOpen[!]                                          *VimConsoleOpen*
 
     Open VimConsole if it is closed.
@@ -195,18 +183,6 @@ FUNCTIONS                                               *vimconsole-functions*
 * vimconsole#log(obj,...)                                   *vimconsole#log()*
 
     It is like javascript's `console.log({obj},...)`.
-    This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
-
-
-* vimconsole#warn(obj,...)                              *vimconsole#warning()*
-
-    It is like javascript's `console.warn({obj},...)`.
-    This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
-
-
-* vimconsole#error(obj,...)                               *vimconsole#error()*
-
-    It is like javascript's `console.error({obj},...)`.
     This behavior is printf({obj}, ...) to VimConsole if `0 < a:0`.
 
 
