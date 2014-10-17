@@ -16,11 +16,9 @@ augroup END
 function! s:text_changed()
   if &filetype is# s:FILETYPE
     let curr_session = s:session()
-    let curr_session['input_str'] = ''
     let m = matchlist(getline('$'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
-    if ! empty(m)
-      let curr_session['input_str'] = m[1]
-    endif
+    let curr_session['input_str'] = empty(m) ? '' : m[1]
+
     let save_line = getline(".")
     let save_cursor = getpos(".")
     let lines = join(vimconsole#buflines(), "\n")
@@ -29,6 +27,10 @@ function! s:text_changed()
     silent 1 delete _
     call setpos('.', save_cursor)
     call setline('.', save_line)
+
+    if -1 is match(getline('$'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
+      call setline('$', s:PROMPT_STRING)
+    endif
   endif
 endfunction
 function! s:session()
@@ -306,7 +308,7 @@ function! vimconsole#clear()
   call vimconsole#redraw()
 endfunction
 function! vimconsole#assert(expr,obj,...)
-  if a:expr
+  if ! a:expr
     call s:add_log(s:TYPE_STRING,type(a:obj),a:obj,a:000)
   endif
   call s:hook_events('on_logged',{ 'tag' : 'vimconsole#assert' })
