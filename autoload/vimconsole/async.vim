@@ -160,6 +160,11 @@ function! vimconsole#async#system_with_vim(input_str, ...)
     silent! execute cmd
     redir END
     let return_value += split(output, "\n")
+  elseif isdirectory(expand(a:input_str))
+    silent execute 'lcd ' . a:input_str
+    let return_value += [getcwd()]
+  elseif filereadable(expand(a:input_str))
+    silent execute printf('edit %s', a:input_str)
   else
     call vimconsole#async#system(a:input_str)
   endif

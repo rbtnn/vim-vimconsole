@@ -1,7 +1,5 @@
 
 let s:TYPE_STRING = type('')
-let s:TYPE_ERROR = 6
-let s:TYPE_WARN = 7
 let s:TYPE_PROMPT = 8
 
 let s:PROMPT_STRING = 'VimConsole>'
@@ -15,20 +13,24 @@ augroup END
 
 function! s:text_changed()
   if &filetype is# s:FILETYPE
+    let lines = vimconsole#buflines()
+
     let curr_session = s:session()
-    let m = matchlist(getline('$'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
+
+    let m = matchlist(getline(len(lines)), s:PROMPT_STRING_PATTERN . '\(.*\)$')
     let curr_session['input_str'] = empty(m) ? '' : m[1]
 
     let save_line = getline(".")
     let save_cursor = getpos(".")
-    let lines = join(vimconsole#buflines(), "\n")
+    let joined_lines = join(lines, "\n")
     silent % delete _
-    silent put=lines
+    silent put=joined_lines
     silent 1 delete _
     call setpos('.', save_cursor)
     call setline('.', save_line)
 
-    if -1 is match(getline('$'), s:PROMPT_STRING_PATTERN . '\(.*\)$')
+    let m = matchlist(getline(len(lines)), s:PROMPT_STRING_PATTERN . '\(.*\)$')
+    if empty(m)
       call setline('$', s:PROMPT_STRING)
     endif
   endif
@@ -126,12 +128,6 @@ function! s:object2lines(obj)
     let lines += [ string(a:obj.value) ]
   elseif type(0) == a:obj.type
     let lines += [ string(a:obj.value) ]
-  elseif s:TYPE_ERROR == a:obj.type || s:TYPE_WARN == a:obj.type
-    if empty(a:obj.value)
-      let lines += [""]
-    else
-      let lines += split(a:obj.value,"\n")
-    endif
   elseif s:TYPE_PROMPT == a:obj.type
     let lines += [ a:obj.value ]
   elseif type('') == a:obj.type
@@ -242,7 +238,7 @@ function! vimconsole#execute_on_prompt(input)
         call vimconsole#log(line)
       endfor
     catch
-      call vimconsole#error(join([ v:exception, v:throwpoint ], "\n"))
+      call vimconsole#log(join([ v:exception, v:throwpoint ], "\n"))
     endtry
 
     if is_vimcon
@@ -259,17 +255,17 @@ endfunction
 function! vimconsole#save_session(path)
   let path = expand(a:path == "" ? '~/.vimconsole_session' : a:path)
   silent! call writefile([
-        \   printf("%s\t%s", 'g:vimconsole', string(get(g:, 'vimconsole', {}))),
-        \   printf("%s\t%s", 't:vimconsole', string(get(t:, 'vimconsole', {}))),
-        \   printf("%s\t%s", 'g:vimconsole#auto_redraw', string(g:vimconsole#auto_redraw)),
-        \   printf("%s\t%s", 'g:vimconsole#enable_quoted_string', string(g:vimconsole#enable_quoted_string)),
-        \   printf("%s\t%s", 'g:vimconsole#eval_function_name', string(g:vimconsole#eval_function_name)),
-        \   printf("%s\t%s", 'g:vimconsole#height', string(g:vimconsole#height)),
-        \   printf("%s\t%s", 'g:vimconsole#no_default_key_mappings', string(g:vimconsole#no_default_key_mappings)),
-        \   printf("%s\t%s", 'g:vimconsole#session_type', string(g:vimconsole#session_type)),
-        \   printf("%s\t%s", 'g:vimconsole#split_rule', string(g:vimconsole#split_rule)),
-        \   printf("%s\t%s", 'g:vimconsole#width', string(g:vimconsole#width)),
-        \ ], path)
+  \   printf("%s\t%s", 'g:vimconsole', string(get(g:, 'vimconsole', {}))),
+  \   printf("%s\t%s", 't:vimconsole', string(get(t:, 'vimconsole', {}))),
+  \   printf("%s\t%s", 'g:vimconsole#auto_redraw', string(g:vimconsole#auto_redraw)),
+  \   printf("%s\t%s", 'g:vimconsole#enable_quoted_string', string(g:vimconsole#enable_quoted_string)),
+  \   printf("%s\t%s", 'g:vimconsole#eval_function_name', string(g:vimconsole#eval_function_name)),
+  \   printf("%s\t%s", 'g:vimconsole#height', string(g:vimconsole#height)),
+  \   printf("%s\t%s", 'g:vimconsole#no_default_key_mappings', string(g:vimconsole#no_default_key_mappings)),
+  \   printf("%s\t%s", 'g:vimconsole#session_type', string(g:vimconsole#session_type)),
+  \   printf("%s\t%s", 'g:vimconsole#split_rule', string(g:vimconsole#split_rule)),
+  \   printf("%s\t%s", 'g:vimconsole#width', string(g:vimconsole#width)),
+  \ ], path)
 endfunction
 function! vimconsole#load_session(path)
   let path = expand(a:path == "" ? '~/.vimconsole_session' : a:path)
@@ -377,7 +373,7 @@ function! vimconsole#redraw(...)
 
       call s:hook_events('on_pre_redraw',{ 'tag' : 'vimconsole#redraw' })
 
-      let lines =join(vimconsole#buflines(), "\n") 
+      let lines = join(vimconsole#buflines(), "\n")
       silent % delete _
       silent put=lines
       silent 1 delete _
@@ -386,9 +382,6 @@ function! vimconsole#redraw(...)
     endif
   endfor
   execute curr_winnr . "wincmd w"
-endfunction
-function! vimconsole#foldtext()
-  return '  +' . printf('%d lines: ', v:foldend - v:foldstart + 1) . getline(v:foldstart)[3:]
 endfunction
 function! vimconsole#bufenter()
   call vimconsole#redraw()
@@ -400,8 +393,6 @@ function! vimconsole#define_commands()
   command! -nargs=0 -bar VimConsoleClear  :call vimconsole#clear()
   command! -nargs=0 -bar VimConsoleToggle :call vimconsole#wintoggle()
   command! -nargs=1 -complete=expression VimConsoleLog     :call vimconsole#log(<args>)
-  command! -nargs=1 -complete=expression VimConsoleError   :call vimconsole#error(<args>)
-  command! -nargs=1 -complete=expression VimConsoleWarn    :call vimconsole#warn(<args>)
   command! -nargs=? -complete=file -bar VimConsoleSaveSession   :call vimconsole#save_session(<q-args>)
   command! -nargs=? -complete=file -bar VimConsoleLoadSession   :call vimconsole#load_session(<q-args>)
 endfunction
