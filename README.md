@@ -1,5 +1,5 @@
 
-# vimconsole.vim
+# vim-vimconsole
 
 This is Immediate Window for Vim script.  
 It is like Google Chrome Developer Console.  
